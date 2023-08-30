@@ -4,4 +4,4 @@
 
 cd /home/wellpi/prog/mouseadmin
 . env/bin/activate
-flask run --host 0.0.0.0
+FLASK_APP=src/mouseadmin/app.py flask run --host 0.0.0.0
