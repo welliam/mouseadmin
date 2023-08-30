@@ -1,5 +1,5 @@
 # run:
-# sudo cp service.sh /usr/bin/mouseadmin_service.sh
+# sudo cp mouseadmin_service.sh /usr/bin/mouseadmin_service.sh
 # sudo chmod +x /usr/bin/mouseadmin_service.sh
 
 cd /home/wellpi/prog/mouseadmin
