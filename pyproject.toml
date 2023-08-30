@@ -18,3 +18,16 @@ dependencies = [
     "beautifulsoup4",
     "requests",
 ]
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+]
+
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[options]
+packages = ["mouseadmin"]

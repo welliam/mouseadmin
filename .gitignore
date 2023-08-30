@@ -1,2 +1,5 @@
 /env/
 /__pycache__/
+/src/mouseadmin_well.egg-info/
+/src/mouseadmin/__pycache__/
+/build/
