@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>games journal</title>
+    <link
+      href="https://dumbiee.neocities.org/reviews/style.css"
+      rel="stylesheet"
+      type="text/css"
+      media="all"
+    />
+  </head>
+  <body>
+    <div id="header">
+      <a href="/home">home</a>
+      <p></p>
+      <h1>gaming journal & reviews</h1>
+      welcome! this is my attempt to chronicle my biased feelings on every game
+      i've ever watched or played.<br />
+      choose from the dropdown list for more info! you can also pick a star to
+      sort by rating.
+      <p></p>
+      didn't like at all :
+      <a href="/reviews/one-star"><font color="#aab3e8">★</font></a
+      ><font color="#645796">★★★★</font><br />
+      enjoyed a bit, mostly unpleasant :
+      <a href="/reviews/two-star"><font color="#aab3e8">★★</font></a
+      ><font color="#645796">★★★</font><br />
+      good, but nothing too amazing :
+      <a href="/reviews/three-star"><font color="#aab3e8">★★★</font></a
+      ><font color="#645796">★★</font><br />
+      had a great time :
+      <a href="/reviews/four-star"><font color="#aab3e8">★★★★</font></a>
+      <font color="#645796">★</font><br />
+      essentially a perfect experience :
+      <a href="/reviews/five-star"><font color="#aab3e8">★★★★★</font></a>
+      <p>
+        total games reviewed: <b>{{ game_review_count }}</b>
+      </p>
+
+      <div class="dropdown">
+        <button class="dropbtn">select a game ...</button>
+        <div class="dropdown-content">
+          {% for title, url in urls %}
+              <a href="{{ url }}">alone in the dark: the new nightmare (2)</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="prev">
+      <div class="prev-head">
+        <h2>∎ most recent game ∎</h2>
+      </div>
+
+      <div class="prev-foot">
+        <b>
+          ▪ other recents: ▪
+          <br />
+          {% for title, url in recent_reviews %}
+              <a href="{{ url }}">{{ title }}</a>
+          {% endfor %}
+        </b>
+      </div>
+      <div class="house">
+        <div class="info">
+          <a href="{{ most_recent_view.url }}" style="text-decoration: none">
+            <img
+              src="{{ most_recent_view.image_url }}"
+            />
+            <h1>{{ most_recent_review.title }}</h1>
+            <h3>
+              <font color="#fff">
+                {{ most_recent_review.stars }}<br />{{ most_recent_reviews.score }}
+              </font>
+            </h3>
+          </a>
+        </div>
+        <div class="review">
+          <b>reviewed on: {{ most_recent_review.date }}</b>
+          <hr />
+          {{ most_recent_review.review }}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
