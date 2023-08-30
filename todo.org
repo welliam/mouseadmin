@@ -7,6 +7,7 @@
 - sorted by time
 * TODO edit pages to comply with parsable format
 - start with just one, set up html parsing, test
+* TODO serve static file (css)
 * TODO set up html parsing
 * edit interface
 ** TODO serve empty edit interface to review at /review/<review-slug>
