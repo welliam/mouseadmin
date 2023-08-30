@@ -1,5 +1,7 @@
-* TODO set up website with flask on pi
-* TODO set up services so website resets on pi reset
+* infra
+** TODO set up website with flask on pi
+** TODO set up services so website resets on pi reset
+** TODO set up script for deploying to pi
 * TODO pull in integration lib
 * TODO serve list of reviews at /review
 - sorted by time
