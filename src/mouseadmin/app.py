@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 
 @dataclass
-class Review:
+class ReviewInfo:
     is_directory: bool
     path: str
     sha1_hash: str
@@ -19,9 +19,9 @@ class Review:
     updated_at: str
 
     @classmethod
-    def get_reviews(cls, items) -> list["Review"]:
+    def parse_reviews(cls, items) -> list["ReviewInfo"]:
         reviews = [
-            Review(**item)
+            ReviewInfo(**item)
             for item in items
             if "reviews/" in item["path"] and not item["is_directory"]
         ]
@@ -33,9 +33,9 @@ class Review:
         return datetime.fromisoformat(datestr).date()
 
 
-def fetch_reviews(client):
+def fetch_reviews(client) -> list[ReviewInfo]:
     items = client.listitems()["files"]
-    return Review.get_reviews(items)
+    return ReviewInfo.parse_reviews(items)
 
 
 @app.route("/reviews")

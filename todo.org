@@ -1,3 +1,5 @@
+https://neocities.org/api
+
 * infra
 ** DONE set up website with flask on pi
 ** DONE set up services so website resets on pi reset
@@ -17,7 +19,7 @@
 
 * edit interface
 ** TODO throttle edits
-** TODO serve empty edit interface to review at /review/<review-slug>
+** TODO serve empty edit interface to review at /review/edit/<review-slug>
 - edit interface should have main review and extra content section?
 - extra content can be freeform, gets appended as is to review
 ** TODO prefill edit interface with parsed html values
