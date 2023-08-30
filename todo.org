@@ -1,15 +1,22 @@
 * infra
-** TODO set up website with flask on pi
-** TODO set up services so website resets on pi reset
-** TODO set up script for deploying to pi
-* TODO pull in integration lib
-* TODO serve list of reviews at /review
+** DONE set up website with flask on pi
+** DONE set up services so website resets on pi reset
+** DONE set up script for deploying to pi
+
+* DONE pull in integration lib
+
+* DONE serve list of reviews at /review
 - sorted by time
-* TODO edit pages to comply with parsable format
-- start with just one, set up html parsing, test
+
+* TODO parsing
+** TODO edit pages to comply with parsable format
+- start with just one, set up html parsing, test, do the rest
+** TODO set up html parsing
+
 * TODO serve static file (css)
-* TODO set up html parsing
+
 * edit interface
+** TODO throttle edits
 ** TODO serve empty edit interface to review at /review/<review-slug>
 - edit interface should have main review and extra content section?
 - extra content can be freeform, gets appended as is to review
@@ -24,8 +31,10 @@
 - parse dates from list endpoint to get most recent ones
 - fetch most recent articles, parse, show on main page
 ** TODO better code editing experience? frontend lib?
+codemirror seems legit and is free/open?
 https://github.com/codemirror/dev/
 https://codepen.io/DerkJanS/pen/EXMwVz
+
 * backups
 ** TODO when editing pages, back up old version on pi
 ** TODO serve backups as is
