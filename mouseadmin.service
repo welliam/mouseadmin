@@ -1,0 +1,22 @@
+# sudo cp mouseadmin.service /etc/systemd/system/mouseadmin.service
+# sudo chmod 644 /etc/systemd/system/mouseadmin.service
+
+# then to enable:
+# sudo systemctl start mouseadmin
+# sudo systemctl enable mouseadmin
+
+# to get status:
+# sudo systemctl status mouseadmin
+
+# to restart:
+# sudo systemctl restart mouseadmin
+
+[Unit]
+Description=Mouseadmin server.
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /usr/bin/mouseadmin_service.sh
+
+[Install]
+WantedBy=multi-user.target
