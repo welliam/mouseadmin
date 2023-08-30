@@ -1,0 +1,24 @@
+* TODO set up website with flask on pi
+* TODO serve list of reviews at /review
+- sorted by time
+* TODO edit pages to comply with parsable format
+- start with just one, set up html parsing, test
+* TODO set up html parsing
+* edit interface
+** TODO serve empty edit interface to review at /review/<review-slug>
+- edit interface should have main review and extra content section?
+- extra content can be freeform, gets appended as is to review
+** TODO prefill edit interface with parsed html values
+** TODO show preview alongside edit interface
+- pull css from site to show accurately
+- iframe to isolate styles? or maybe just don't care and slam the styles in the page
+** TODO set up page for creating a new review on /review
+- input and button, creates a new page at /review/<review-slug> but doesn't create it yet
+** TODO set up writing to website: review page
+** TODO set up writing to website: home page
+- parse dates from list endpoint to get most recent ones
+- fetch most recent articles, parse, show on main page
+* backups
+** TODO when editing pages, back up old version on pi
+** TODO serve backups as is
+** TODO list endpoint for backups /backup

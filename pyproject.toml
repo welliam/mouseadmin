@@ -1,0 +1,18 @@
+[project]
+name = "mouseadmin_well"
+version = "0.0.1"
+authors = [
+  { name="well", email="well1912@gmail.com" },
+]
+description = "mouse site admin panel"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "python-slugify",
+    "flask",
+]
