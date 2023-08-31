@@ -11,6 +11,40 @@ app = Flask(__name__)
 
 
 @dataclass
+class FullReview:
+    path: str
+    title: str
+    developer: str
+    rating: Decimal
+    platform: str
+    completion: str
+    method: str
+    date: date
+    art_url: str
+    review_html: str
+    recommendation_html: str
+    extra_content_html: str
+
+    def review_template_context(self) -> dict:
+        return dict(
+            path=self.path,
+            title=self.title,
+            developer=self.developer,
+            rating=self.rating,
+            platform=self.platform,
+            completion=self.completion,
+            method=self.method,
+            date_iso=str(self.date),
+            date_string=self.date.strftime("%b %d, %Y"),
+            art_url=self.art_url,
+            review_html=self.review_html,
+            recommendation_html=self.recommendation_html,
+            extra_content_html=self.extra_content_html,
+            rating_stars="*" * self.stars + "." if self.rating - int(self.rating) else "",
+        )
+
+
+@dataclass
 class ReviewInfo:
     is_directory: bool
     path: str

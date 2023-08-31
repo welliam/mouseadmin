@@ -19,6 +19,11 @@ https://neocities.org/api
 
 * edit interface
 ** TODO throttle edits
+- how should this be done?
+  - frontend visually "queues" a save, waits until the previous save has finished
+    - should this be stored on the be?
+  - be queues it, allows overwriting
+- just sleep until previous save is up. can store this in memory probably
 ** TODO serve empty edit interface to review at /review/edit/<review-slug>
 - edit interface should have main review and extra content section?
 - extra content can be freeform, gets appended as is to review
