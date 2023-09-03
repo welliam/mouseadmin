@@ -15,9 +15,9 @@ https://neocities.org/api
 - start with just one, set up html parsing, test, do the rest
 ** TODO set up html parsing
 
-* TODO serve static file (css)
+* DONE serve static file (css)
 
-* edit interface
+* edit interface v1
 ** TODO throttle edits
 - how should this be done?
   - frontend visually "queues" a save, waits until the previous save has finished
@@ -28,19 +28,22 @@ https://neocities.org/api
 - edit interface should have main review and extra content section?
 - extra content can be freeform, gets appended as is to review
 ** TODO prefill edit interface with parsed html values
-** TODO show preview alongside edit interface
-- pull css from site to show accurately
-- iframe to isolate styles? or maybe just don't care and slam the styles in the page
 ** TODO set up page for creating a new review on /review
 - input and button, creates a new page at /review/<review-slug> but doesn't create it yet
 ** TODO set up writing to website: review page
 ** TODO set up writing to website: home page
 - parse dates from list endpoint to get most recent ones
 - fetch most recent articles, parse, show on main page
+
+* TODO edit interface v2
+** TODO show preview alongside edit interface
+- pull css from site to show accurately
+- iframe to isolate styles? or maybe just don't care and slam the styles in the page
 ** TODO better code editing experience? frontend lib?
 codemirror seems legit and is free/open?
 https://github.com/codemirror/dev/
 https://codepen.io/DerkJanS/pen/EXMwVz
+** TODO draft saving
 
 * backups
 ** TODO when editing pages, back up old version on pi

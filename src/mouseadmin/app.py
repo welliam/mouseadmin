@@ -1,8 +1,10 @@
+from slugify import slugify
+from decimal import Decimal
 import re
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, date
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 from mouseadmin import neocities
 
@@ -24,6 +26,33 @@ class FullReview:
     review_html: str
     recommendation_html: str
     extra_content_html: str
+
+    @classmethod
+    def empty(cls):
+        return cls(
+            path="",
+            title="",
+            developer="",
+            rating=3,
+            platform="",
+            completion="",
+            method="",
+            date=date.today(),
+            art_url="",
+            review_html="",
+            recommendation_html="",
+            extra_content_html="",
+        )
+
+    @classmethod
+    def new(cls, date: date, title: str, **kwargs):
+        path = f"{str(date)}-{slugify(title)}"
+        return cls(
+            path=path,
+            date=date,
+            title=title,
+            **kwargs,
+        )
 
     def review_template_context(self) -> dict:
         return dict(
@@ -76,3 +105,23 @@ def fetch_reviews(client) -> list[ReviewInfo]:
 def reviews():
     client = neocities.NeoCities(api_key=os.getenv("MOUSEADMIN_SITE_API_KEY"))
     return render_template("review_list.html", items=fetch_reviews(client))
+
+
+@app.route("/reviews/new", methods=["GET", "POST"])
+def new_edit():
+    if request.method == "GET":
+        return render_template(
+            "review_edit.html",
+            **FullReview.empty().review_template_context(),
+        )
+    else:
+        print("hello world")
+        kwargs = dict(
+            request.form,
+            date=datetime.fromisoformat(request.form['date']).date(),
+            rating=Decimal(request.form['rating']),
+        )
+        return render_template(
+            "review.html",
+            **FullReview.new(**kwargs).review_template_context(),
+        )

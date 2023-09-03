@@ -11,16 +11,17 @@
     />
   </head>
   <body style="background-repeat: repeat-x; margin: 0">
-    <div id="game-house"
-         data-title="{{ title }}"
-         data-developer="{{ developer }}"
-         data-rating="{{ rating }}"
-         data-platform="{{ platform }}"
-         data-completion="{{ completion }}"
-         data-method="{{ method }}"
-         data-date="{{ date_iso }}"
-         data-art-url="{{ art_url }}"
-      >
+    <div
+      id="game-house"
+      data-title="{{ title }}"
+      data-developer="{{ developer }}"
+      data-rating="{{ rating }}"
+      data-platform="{{ platform }}"
+      data-completion="{{ completion }}"
+      data-method="{{ method }}"
+      data-date="{{ date_iso }}"
+      data-art-url="{{ art_url }}"
+    >
       <div id="game-info">
         <div style="float: right">
           <a href="https://dumbiee.neocities.org/reviews/home.html">back</a> |
@@ -44,9 +45,9 @@
       </div>
       <div class="game-rec">
         <div class="game-rec-q">so, do i recommend this?</div>
-        <div
-          id="game-rec-answer"
-          class="game-rec-a">{{ recommendation_html|safe }}</div>
+        <div id="game-rec-answer" class="game-rec-a">
+          {{ recommendation_html|safe }}
+        </div>
       </div>
       <div id="extras">{{ extra_content_html|safe }}</div>
     </div>
