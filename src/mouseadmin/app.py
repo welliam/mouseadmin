@@ -1,3 +1,4 @@
+import tempfile
 from slugify import slugify
 from decimal import Decimal
 import re
@@ -10,6 +11,9 @@ from mouseadmin import neocities
 
 
 app = Flask(__name__)
+
+
+REVIEW_NEOCITIES_PATH = "reviews/"
 
 
 @dataclass
@@ -54,6 +58,9 @@ class FullReview:
             **kwargs,
         )
 
+    def neocities_path(self) -> str:
+        return REVIEW_NEOCITIES_PATH + self.path + ".html"
+
     def review_template_context(self) -> dict:
         return dict(
             path=self.path,
@@ -86,9 +93,10 @@ class ReviewInfo:
         reviews = [
             ReviewInfo(**item)
             for item in items
-            if "reviews/" in item["path"] and not item["is_directory"]
+            if REVIEW_NEOCITIES_PATH in item["path"]
+            and not item["is_directory"]
         ]
-        return sorted(reviews, key=lambda review: review.date)
+        return sorted(reviews, key=lambda review: review.date, reverse=True)
 
     @property
     def date(self):
@@ -115,13 +123,21 @@ def new_edit():
             **FullReview.empty().review_template_context(),
         )
     else:
-        print("hello world")
+        client = neocities.NeoCities(api_key=os.getenv("MOUSEADMIN_SITE_API_KEY"))
         kwargs = dict(
             request.form,
             date=datetime.fromisoformat(request.form['date']).date(),
             rating=Decimal(request.form['rating']),
         )
-        return render_template(
+        review = FullReview.new(**kwargs)
+        rendered_template = render_template(
             "review.html",
-            **FullReview.new(**kwargs).review_template_context(),
+            **review.review_template_context(),
         )
+        review_file = tempfile.NamedTemporaryFile(mode="w")
+        review_file.write(rendered_template)
+        review_file.seek(0)
+        # TODO raise error on dupe?
+        client.upload((review_file.name, review.neocities_path()))
+        review_file.close()
+        return "uploaded!"
