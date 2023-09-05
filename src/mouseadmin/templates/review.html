@@ -29,7 +29,7 @@
         </div>
         <img src="{{ art_url }}" />
         <h1 class="title">{{ title }}</h1>
-        <h2>{{ deverloper }}</h2>
+        <h2>{{ developer }}</h2>
         <h3 class="rating">{{ rating_stars }}</h3>
         <h4>
           platform: <b>{{ platform }}</b><br />
@@ -41,7 +41,7 @@
         <h1>review</h1>
         <h2 class="date">{{ date_string }}</h2>
         <hr />
-        <div id="game-review" class="meat">{{ review_html|safe }}</div>
+        <div id="game-review-content" class="meat">{{ review_html|safe }}</div>
       </div>
       <div class="game-rec">
         <div class="game-rec-q">so, do i recommend this?</div>

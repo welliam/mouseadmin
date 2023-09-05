@@ -1,3 +1,8 @@
-{% for item in items %}
-<li>{{ item.path }}</li>
-{% endfor %}
+<html>
+  <body>
+    <a href="/reviews/new">New review</a>
+    {% for item in items %}
+    <li>{{ item.path }}</li>
+    {% endfor %}
+  </body>
+</html>

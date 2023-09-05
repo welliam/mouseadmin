@@ -17,20 +17,49 @@ https://neocities.org/api
 
 * DONE serve static file (css)
 
+* TODO formatting fixes
+** TODO padding on top of title
+** TODO fix stars
+** TODO date format
+** TODO fix box on review
+
 * edit interface v1
 ** TODO throttle edits
-- how should this be done?
-  - frontend visually "queues" a save, waits until the previous save has finished
-    - should this be stored on the be?
-  - be queues it, allows overwriting
-- just sleep until previous save is up. can store this in memory probably
+*** FE approach
+frontend visually "queues" a save, waits until the previous save has finished
+- would have to write js for this
+- this is probably simplest
+- can save the previous save time in localstorage so multiple files are ok
+- lost on closing page though, which isn't nice
+
+*** queue approach
+table:
+| neocities_path | str           |
+| contents       | str           |
+| time           | time          |
+| saved_at       | time nullable |
+
+when writing, check for recent saved_at
+- if max(saved_at) > 1 minute ago:
+  - save immediately, write rows for saved files with saved_at = time
+- if max(saved_at) < 1 minute ago:
+  - write rows with saved_at as null
+  - if task is not kicked off (no null saved_at exists)
+    - kick off a task that:
+      - checks max(saved_at), then sleeps (1 minute - saved_at)
+      - selects all rows with null saved_at and saves them to neocities
+        - if there are dupe neocities_paths, use most recent by time
+
+*** slow write endpoint on BE
+- just sleeps until it's ready
+- still have to keep track of saves
 ** TODO serve empty edit interface to review at /review/edit/<review-slug>
 - edit interface should have main review and extra content section?
 - extra content can be freeform, gets appended as is to review
-** TODO prefill edit interface with parsed html values
-** TODO set up page for creating a new review on /review
+** TODO fill edit interface with parsed html values
+** DONE set up page for creating a new review on /review
 - input and button, creates a new page at /review/<review-slug> but doesn't create it yet
-** TODO set up writing to website: review page
+** DONE set up writing to website: review page
 ** TODO set up writing to website: home page
 - parse dates from list endpoint to get most recent ones
 - fetch most recent articles, parse, show on main page
@@ -47,5 +76,11 @@ https://codepen.io/DerkJanS/pen/EXMwVz
 
 * backups
 ** TODO when editing pages, back up old version on pi
-** TODO serve backups as is
-** TODO list endpoint for backups /backup
+- file format: YYYY-MM-DD-HH:MM:SS-YYYY-MM-DD-PATH
+- mouse can let me know if these need to be revived
+
+* TODO delete files in app
+clean up home page conveniently
+
+* TODO button to refresh home page template
+can be useful for edits on reviews

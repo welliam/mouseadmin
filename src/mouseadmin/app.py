@@ -15,6 +15,40 @@ app = Flask(__name__)
 
 REVIEW_NEOCITIES_PATH = "reviews/"
 
+REVIEW_HOME_NEOCITIES_PATH = REVIEW_NEOCITIES_PATH + "home.html"
+
+
+class MouseadminNeocitiesClient:
+    _client: neocities.NeoCities
+
+    def __init__(self):
+        self._client = neocities.NeoCities(
+            api_key=os.getenv("MOUSEADMIN_SITE_API_KEY")
+        )
+
+    def listitems(self):
+        return self._client.listitems()
+
+    def _temp_file_of(self, string_content: str):
+        review_file = tempfile.NamedTemporaryFile(mode="w")
+        review_file.write(string_content)
+        review_file.seek(0)
+        return review_file
+
+    def upload_strings(self, files: dict[str, str]):
+        """
+        files is a dict {filename: string_content}
+        """
+        file_objects = {
+            neocities_path: self._temp_file_of(string_content)
+            for neocities_path, string_content in files.items()
+        }
+        self._client.upload(*(
+            (file.name, neocities_path)
+            for neocities_path, file in file_objects.items()
+        ))
+
+
 
 @dataclass
 class FullReview:
@@ -76,7 +110,7 @@ class FullReview:
             review_html=self.review_html,
             recommendation_html=self.recommendation_html,
             extra_content_html=self.extra_content_html,
-            rating_stars="*" * self.stars + "." if self.rating - int(self.rating) else "",
+            rating_stars=("*" * int(self.rating) + ("." if self.rating - int(self.rating) else "")) if self.rating else "",
         )
 
 
@@ -123,7 +157,7 @@ def new_edit():
             **FullReview.empty().review_template_context(),
         )
     else:
-        client = neocities.NeoCities(api_key=os.getenv("MOUSEADMIN_SITE_API_KEY"))
+        client = MouseadminNeocitiesClient()
         kwargs = dict(
             request.form,
             date=datetime.fromisoformat(request.form['date']).date(),
@@ -134,10 +168,5 @@ def new_edit():
             "review.html",
             **review.review_template_context(),
         )
-        review_file = tempfile.NamedTemporaryFile(mode="w")
-        review_file.write(rendered_template)
-        review_file.seek(0)
-        # TODO raise error on dupe?
-        client.upload((review_file.name, review.neocities_path()))
-        review_file.close()
+        client.upload_strings({review.neocities_path(): rendered_template})
         return "uploaded!"
