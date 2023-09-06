@@ -35,6 +35,10 @@ class MouseadminNeocitiesClient:
             api_key=API_KEY,
         )
 
+    def get_page(self, path):
+        url = f"{NEOCITIES_DOMAIN}{path}"
+        return requests.get(url).text
+
     def listitems(self):
         return self._client.listitems()
 
@@ -123,7 +127,6 @@ class FullReview:
     def parse_review(cls, path: str, review_html: str):
         soup = BeautifulSoup(review_html, features="html.parser")
         house = soup.find(id="game-house")
-        print(cls._parse_html(soup, "game-review-content"))
         return cls(
             path=path,
             title=house["data-title"],
@@ -199,16 +202,22 @@ def fetch_reviews(client) -> list[ReviewInfo]:
     return ReviewInfo.parse_reviews(items)
 
 
-def fetch_full_review_from_slug(slug: str) -> FullReview:
-    url = f"{NEOCITIES_DOMAIN}/reviews/{slug}.html"
-    return FullReview.parse_review(slug, requests.get(url).text)
+def fetch_full_review_from_slug(client, slug: str) -> FullReview:
+    path = f"/reviews/{slug}.html"
+    return FullReview.parse_review(slug, client.get_page(path))
 
 
-def fetch_home_content(client) -> dict:
-    reviews = client.listitems()["files"]
-    dict(
+def fetch_home_context(client) -> dict:
+    reviews = fetch_reviews(client)
+    most_recent_review_info = reviews[0]
+    most_recent_review = fetch_full_review_from_slug(client, reviews[0].slug)
+    recent_reviews = [fetch_full_review_from_slug(client, review.slug) for review in reviews[1:3]]
+    return dict(
         game_review_count=len(reviews),
         urls=[],
+        most_recent_review=most_recent_review,
+        recent_reviews=recent_reviews,
+        NEOCITIES_DOMAIN=NEOCITIES_DOMAIN,
     )
 
 
@@ -261,13 +270,13 @@ def new_review():
 
 @app.route("/review/edit/<path>", methods=["GET", "POST"])
 def edit_review(path):
+    client = MouseadminNeocitiesClient()
     if request.method == "GET":
         return render_template(
             "review_edit.html",
-            **fetch_full_review_from_slug(path).review_template_context(),
+            **fetch_full_review_from_slug(client, path).review_template_context(),
         )
     else:
-        client = MouseadminNeocitiesClient()
         kwargs = dict(
             request.form,
             date=datetime.fromisoformat(request.form['date']).date(),
@@ -280,3 +289,12 @@ def edit_review(path):
         )
         client.upload_strings({review.neocities_path(): rendered_template})
         return redirect("/review")
+
+
+@app.route("/review/home", methods=["GET"])
+def home_preview():
+    client = MouseadminNeocitiesClient()
+    return render_template(
+        "home.html",
+        **fetch_home_context(client)
+    )
