@@ -143,13 +143,27 @@ def fetch_reviews(client) -> list[ReviewInfo]:
     return ReviewInfo.parse_reviews(items)
 
 
-@app.route("/reviews")
+@app.route("/reviews/")
 def reviews():
     client = neocities.NeoCities(api_key=os.getenv("MOUSEADMIN_SITE_API_KEY"))
     return render_template("review_list.html", items=fetch_reviews(client))
 
 
-@app.route("/reviews/new", methods=["GET", "POST"])
+@app.route("/reviews/preview/", methods=["POST"])
+def preview_edit():
+    kwargs = dict(
+        request.form,
+        date=datetime.fromisoformat(request.form['date']).date(),
+        rating=Decimal(request.form['rating']),
+    )
+    review = FullReview.new(**kwargs)
+    return render_template(
+        "review.html",
+        **review.review_template_context(),
+    )
+
+
+@app.route("/reviews/new/", methods=["GET", "POST"])
 def new_edit():
     if request.method == "GET":
         return render_template(

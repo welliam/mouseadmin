@@ -18,12 +18,13 @@ https://neocities.org/api
 * DONE serve static file (css)
 
 * TODO formatting fixes
-** TODO padding on top of title
+** DONE padding on top of title
 ** TODO fix stars
 ** TODO date format
-** TODO fix box on review
+** DONE? fix box on review
 
 * edit interface v1
+** DONE preview button
 ** TODO throttle edits
 *** FE approach
 frontend visually "queues" a save, waits until the previous save has finished
@@ -53,6 +54,7 @@ when writing, check for recent saved_at
 *** slow write endpoint on BE
 - just sleeps until it's ready
 - still have to keep track of saves
+
 ** TODO serve empty edit interface to review at /review/edit/<review-slug>
 - edit interface should have main review and extra content section?
 - extra content can be freeform, gets appended as is to review

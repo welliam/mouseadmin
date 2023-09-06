@@ -1,10 +1,10 @@
 <html>
   <head>
     <title>New review</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}"
+    <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
   </head>
   <body>
-    <form method="post">
+    <form id="review-form" method="post">
       <ul>
         <li>
           <label for="title">Title: </label>
@@ -79,6 +79,7 @@
         </li>
       </ul>
       <button type="submit">Create review</button>
+      <button formtarget="_blank" id="preview-button" formaction="/reviews/preview" type="submit">Preview</button>
     </form>
   </body>
 </html>
