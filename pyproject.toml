@@ -22,6 +22,8 @@ dependencies = [
 dev = [
     "pytest",
     "black",
+    "ipython",
+    "ipdb",
 ]
 
 

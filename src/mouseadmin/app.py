@@ -1,3 +1,4 @@
+import requests
 import tempfile
 from slugify import slugify
 from decimal import Decimal
@@ -19,13 +20,17 @@ REVIEW_NEOCITIES_PATH = "reviews/"
 
 REVIEW_HOME_NEOCITIES_PATH = REVIEW_NEOCITIES_PATH + "home.html"
 
+NEOCITIES_DOMAIN = os.getenv("NEOCITIES_DOMAIN", "https://fern.neocities.org")
+
+API_KEY = os.getenv("MOUSEADMIN_SITE_API_KEY")
+
 
 class MouseadminNeocitiesClient:
     _client: neocities.NeoCities
 
     def __init__(self):
         self._client = neocities.NeoCities(
-            api_key=os.getenv("MOUSEADMIN_SITE_API_KEY")
+            api_key=API_KEY,
         )
 
     def listitems(self):
@@ -84,23 +89,6 @@ class FullReview:
         )
 
     @classmethod
-    def test(cls):
-        return cls(
-            path="path",
-            title="title",
-            developer="developer",
-            rating=4.5,
-            platform="platform",
-            completion="completion",
-            method="method",
-            date=date.today(),
-            art_url="art_url",
-            review_html="review_html",
-            recommendation_html="recommendation_html",
-            extra_content_html="extra_content_html",
-        )
-
-    @classmethod
     def new(cls, date: date, title: str, **kwargs):
         path = f"{str(date)}-{slugify(title)}"
         return cls(
@@ -110,23 +98,29 @@ class FullReview:
             **kwargs,
         )
 
+    @staticmethod
+    def _parse_html(soup: BeautifulSoup, id: str) -> str:
+        content = soup.find(id=id)
+        return content.encode_contents().decode().strip()
+
     @classmethod
     def parse_review(cls, path: str, review_html: str):
-        soup = BeautifulSoup(review_html)
-        import pdb; pdb.set_trace()
+        soup = BeautifulSoup(review_html, features="html.parser")
+        house = soup.find(id="game-house")
+        print(cls._parse_html(soup, "game-review-content"))
         return cls(
             path=path,
-            title="",
-            developer="",
-            rating=3,
-            platform="",
-            completion="",
-            method="",
-            date=date.today(),
-            art_url="",
-            review_html="",
-            recommendation_html="",
-            extra_content_html="",
+            title=house["data-title"],
+            developer=house["data-developer"],
+            rating=Decimal(house["data-rating"]),
+            platform=house["data-platform"],
+            completion=house["data-completion"],
+            method=house["data-method"],
+            date=datetime.fromisoformat(house["data-date"]).date(),
+            art_url=house["data-art-url"],
+            review_html=cls._parse_html(soup, "game-review-content"),
+            recommendation_html=cls._parse_html(soup, "game-rec-answer"),
+            extra_content_html=cls._parse_html(soup, "extras"),
         )
 
     def neocities_path(self) -> str:
@@ -185,13 +179,18 @@ def fetch_reviews(client) -> list[ReviewInfo]:
     return ReviewInfo.parse_reviews(items)
 
 
+def fetch_full_review_from_slug(slug: str) -> FullReview:
+    url = f"{NEOCITIES_DOMAIN}/reviews/{slug}.html"
+    return FullReview.parse_review(slug, requests.get(url).text)
+
+
 @app.route("/review/")
 def review():
     client = MouseadminNeocitiesClient()
     return render_template(
         "review_list.html",
         items=fetch_reviews(client),
-        NEOCITIES_DOMAIN=os.getenv("NEOCITIES_DOMAIN", "https://fern.neocities.org"),
+        NEOCITIES_DOMAIN=NEOCITIES_DOMAIN,
     )
 
 
@@ -237,7 +236,7 @@ def edit_review(path):
     if request.method == "GET":
         return render_template(
             "review_edit.html",
-            **FullReview.test().review_template_context(),
+            **fetch_full_review_from_slug(path).review_template_context(),
         )
     else:
         client = MouseadminNeocitiesClient()
