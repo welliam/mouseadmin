@@ -7,15 +7,15 @@
     <form id="review-form" method="post">
       <ul>
         <li>
-          <label for="title">Title: </label>
-          <input name="title" id="title" />
+          <label for="title">Title </label>
+          <input name="title" id="title" required />
         </li>
         <li>
-          <label for="developer">Developer: </label>
+          <label for="developer">Developer</label>
           <input name="developer" id="developer" />
         </li>
         <li>
-          <label for="rating"> Rating: </label>
+          <label for="rating"> Rating</label>
           <select name="rating" id="rating">
             <option value="1">1</option>
             <option value="1.5">1.5</option>
@@ -29,27 +29,27 @@
           </select>
         </li>
         <li>
-          <label for="platform"> Platform: </label>
+          <label for="platform"> Platform</label>
           <input name="platform" id="platform" />
         </li>
         <li>
-          <label for="completion"> Completion: </label>
+          <label for="completion"> Completion</label>
           <input name="completion" id="completion"
         </li>
         <li>
-          <label for="method"> Method: </label>
+          <label for="method"> Method</label>
           <input name="method" id="method" />
         </li>
         <li>
-          <label for="date"> Date: </label>
-          <input type="date" name="date" id="date" />
+          <label for="date">Date</label>
+          <input type="date" required name="date" id="date" />
         </li>
         <li>
-          <label for="art_url"> Art URL: </label>
+          <label for="art_url"> Art URL</label>
           <input name="art_url" id="art_url" />
         </li>
         <li>
-          <label for="review_html">Review:</label>
+          <label for="review_html">Review</label>
           <textarea
             cols="50"
             rows="10"
@@ -58,17 +58,16 @@
           ></textarea>
         </li>
         <li>
-          <label for="recommendation_html"> Recommendation: </label>
+          <label for="recommendation_html">Recommendation</label>
           <textarea
             cols="50"
             rows="4"
             name="recommendation_html"
             id="recommendation_html"
-          >
-          </textarea>
+          ></textarea>
         </li>
         <li>
-          <label for="extra_content_html"> Extra content html: </label>
+          <label for="extra_content_html">Extra content html</label>
           <textarea
             name="extra_content_html"
             id="extra_content_html"
