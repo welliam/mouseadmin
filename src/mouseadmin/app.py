@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, date
 import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 
 from mouseadmin import neocities
 
@@ -183,4 +183,4 @@ def new_edit():
             **review.review_template_context(),
         )
         client.upload_strings({review.neocities_path(): rendered_template})
-        return "uploaded!"
+        return redirect("/reviews")
