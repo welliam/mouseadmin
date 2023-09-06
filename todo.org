@@ -38,27 +38,27 @@ when writing, check for recent saved_at
 - still have to keep track of saves
 - fe will need to show loading spinner (should probably do this anyway)
 
-** TODO serve empty edit interface to review at /review/edit/<review-slug>
+** DONE serve empty edit interface to review at /review/edit/<review-slug>
 - edit interface should have main review and extra content section?
 - extra content can be freeform, gets appended as is to review
-** TODO fill edit interface with parsed html values
+** DONE fill edit interface with parsed html values
 ** DONE set up page for creating a new review on /review
 - input and button, creates a new page at /review/<review-slug> but doesn't create it yet
 ** DONE set up writing to website: review page
+** DONE fix edit page actions: preview and edit
 ** TODO set up writing to website: home page
 - parse dates from list endpoint to get most recent ones
 - fetch most recent articles, parse, show on main page
 ** TODO prevent saving over a review on /reviews/new
 
-* TODO home page v2
-** TODO edit button
-** TODO visit button
-direct to neocities url
-
 * TODO backups
 ** TODO when editing pages, back up old version on pi
 - file format: YYYY-MM-DD-HH:MM:SS-YYYY-MM-DD-PATH
 - mouse can let me know if these need to be revived
+
+* TODO deploy the real thing
+- generate API key on dumbiee, set MOUSEADMIN_SITE_API_KEY to it
+- set NEOCITIES_DOMAIN to https://dumbiee.neocities.org
 
 * TODO delete files in app
 clean up home page conveniently
@@ -75,6 +75,11 @@ codemirror seems legit and is free/open?
 https://github.com/codemirror/dev/
 https://codepen.io/DerkJanS/pen/EXMwVz
 ** TODO draft saving
+
+* DONE home page v2
+** DONE edit button
+** DONE visit button
+direct to neocities url
 
 * infra
 ** DONE set up website with flask on pi

@@ -14,7 +14,7 @@
             id="title"
             required
             value="{{ title }}"
-            {% if title %}disabled{% endif %}
+            {% if title %}readonly{% endif %}
           />
         </li>
         <li>
@@ -54,7 +54,7 @@
             required
             name="date"
             id="date"
-            {% if date_iso %}disabled{% endif %}
+            {% if date_iso %}readonly{% endif %}
             value="{{ date_iso }}"
           />
         </li>
