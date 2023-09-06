@@ -1,29 +1,11 @@
 https://neocities.org/api
 
-* infra
-** DONE set up website with flask on pi
-** DONE set up services so website resets on pi reset
-** DONE set up script for deploying to pi
-
-* DONE pull in integration lib
-
-* DONE serve list of reviews at /review
-- sorted by time
-
 * TODO parsing
 ** TODO edit pages to comply with parsable format
 - start with just one, set up html parsing, test, do the rest
 ** TODO set up html parsing
 
-* DONE serve static file (css)
-
-* TODO formatting fixes
-** DONE padding on top of title
-** DONE fix stars
-** TODO date format
-** DONE fix box on review
-
-* edit interface v1
+* TODO edit interface v1
 ** DONE preview button
 ** TODO throttle edits
 *** FE approach
@@ -54,6 +36,7 @@ when writing, check for recent saved_at
 *** slow write endpoint on BE
 - just sleeps until it's ready
 - still have to keep track of saves
+- fe will need to show loading spinner (should probably do this anyway)
 
 ** TODO serve empty edit interface to review at /review/edit/<review-slug>
 - edit interface should have main review and extra content section?
@@ -65,6 +48,18 @@ when writing, check for recent saved_at
 ** TODO set up writing to website: home page
 - parse dates from list endpoint to get most recent ones
 - fetch most recent articles, parse, show on main page
+** TODO prevent saving over a review on /reviews/new
+
+* TODO backups
+** TODO when editing pages, back up old version on pi
+- file format: YYYY-MM-DD-HH:MM:SS-YYYY-MM-DD-PATH
+- mouse can let me know if these need to be revived
+
+* TODO delete files in app
+clean up home page conveniently
+
+* TODO button to refresh home page template
+can be useful for edits on reviews
 
 * TODO edit interface v2
 ** TODO show preview alongside edit interface
@@ -76,13 +71,20 @@ https://github.com/codemirror/dev/
 https://codepen.io/DerkJanS/pen/EXMwVz
 ** TODO draft saving
 
-* backups
-** TODO when editing pages, back up old version on pi
-- file format: YYYY-MM-DD-HH:MM:SS-YYYY-MM-DD-PATH
-- mouse can let me know if these need to be revived
+* infra
+** DONE set up website with flask on pi
+** DONE set up services so website resets on pi reset
+** DONE set up script for deploying to pi
 
-* TODO delete files in app
-clean up home page conveniently
+* DONE pull in integration lib
 
-* TODO button to refresh home page template
-can be useful for edits on reviews
+* DONE serve list of reviews at /review
+- sorted by time
+
+* DONE serve static file (css)
+
+* DONE formatting fixes
+** DONE padding on top of title
+** DONE fix stars
+** DONE date format
+** DONE fix box on review
