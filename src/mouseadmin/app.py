@@ -1,10 +1,12 @@
+import time
+from dateutil import parser
 import requests
 import tempfile
 from slugify import slugify
 from decimal import Decimal
 import re
 from dataclasses import dataclass
-from datetime import datetime, date
+from datetime import datetime, date, timezone, timedelta
 import os
 from flask import Flask, render_template, request, redirect
 from bs4 import BeautifulSoup
@@ -46,6 +48,18 @@ class MouseadminNeocitiesClient:
         """
         files is a dict {filename: string_content}
         """
+        newest_review_updated_at = max(
+            review.updated_at_datetime
+            for review in fetch_reviews(self)
+        )
+        seconds_to_sleep = (timedelta(minutes=1.1) - (
+            datetime.now(timezone.utc)
+            - newest_review_updated_at
+        )).total_seconds()
+        if seconds_to_sleep > 0:
+            print(f"THROTTLING SAVE for {seconds_to_sleep} seconds")
+            time.sleep(seconds_to_sleep)
+
         file_objects = {
             neocities_path: self._temp_file_of(string_content)
             for neocities_path, string_content in files.items()
@@ -101,6 +115,8 @@ class FullReview:
     @staticmethod
     def _parse_html(soup: BeautifulSoup, id: str) -> str:
         content = soup.find(id=id)
+        if content is None:
+            return ""
         return content.encode_contents().decode().strip()
 
     @classmethod
@@ -162,6 +178,10 @@ class ReviewInfo:
             and not item["is_directory"]
         ]
         return sorted(reviews, key=lambda review: review.date, reverse=True)
+
+    @property
+    def updated_at_datetime(self) -> datetime:
+        return parser.parse(self.updated_at)
 
     @property
     def date(self):
