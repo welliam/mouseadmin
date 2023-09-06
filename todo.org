@@ -19,9 +19,9 @@ https://neocities.org/api
 
 * TODO formatting fixes
 ** DONE padding on top of title
-** TODO fix stars
+** DONE fix stars
 ** TODO date format
-** DONE? fix box on review
+** DONE fix box on review
 
 * edit interface v1
 ** DONE preview button

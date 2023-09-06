@@ -105,7 +105,7 @@ class FullReview:
             completion=self.completion,
             method=self.method,
             date_iso=str(self.date),
-            date_string=self.date.strftime("%b %d, %Y"),
+            date_string=self.date.strftime("%Y %b %-d").lower(),
             art_url=self.art_url,
             review_html=self.review_html,
             recommendation_html=self.recommendation_html,
