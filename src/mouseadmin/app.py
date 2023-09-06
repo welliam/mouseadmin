@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from datetime import datetime, date
 import os
 from flask import Flask, render_template, request, redirect
+from bs4 import BeautifulSoup
+from typing import Optional
 
 from mouseadmin import neocities
 
@@ -49,7 +51,6 @@ class MouseadminNeocitiesClient:
         ))
 
 
-
 @dataclass
 class FullReview:
     path: str
@@ -59,7 +60,7 @@ class FullReview:
     platform: str
     completion: str
     method: str
-    date: date
+    date: Optional[date]
     art_url: str
     review_html: str
     recommendation_html: str
@@ -75,11 +76,28 @@ class FullReview:
             platform="",
             completion="",
             method="",
-            date=date.today(),
+            date=None,
             art_url="",
             review_html="",
             recommendation_html="",
             extra_content_html="",
+        )
+
+    @classmethod
+    def test(cls):
+        return cls(
+            path="path",
+            title="title",
+            developer="developer",
+            rating=4.5,
+            platform="platform",
+            completion="completion",
+            method="method",
+            date=date.today(),
+            art_url="art_url",
+            review_html="review_html",
+            recommendation_html="recommendation_html",
+            extra_content_html="extra_content_html",
         )
 
     @classmethod
@@ -90,6 +108,25 @@ class FullReview:
             date=date,
             title=title,
             **kwargs,
+        )
+
+    @classmethod
+    def parse_review(cls, path: str, review_html: str):
+        soup = BeautifulSoup(review_html)
+        import pdb; pdb.set_trace()
+        return cls(
+            path=path,
+            title="",
+            developer="",
+            rating=3,
+            platform="",
+            completion="",
+            method="",
+            date=date.today(),
+            art_url="",
+            review_html="",
+            recommendation_html="",
+            extra_content_html="",
         )
 
     def neocities_path(self) -> str:
@@ -104,8 +141,8 @@ class FullReview:
             platform=self.platform,
             completion=self.completion,
             method=self.method,
-            date_iso=str(self.date),
-            date_string=self.date.strftime("%Y %b %-d").lower(),
+            date_iso=str(self.date) if self.date else None,
+            date_string=self.date.strftime("%Y %b %-d").lower() if self.date else None,
             art_url=self.art_url,
             review_html=self.review_html,
             recommendation_html=self.recommendation_html,
@@ -137,6 +174,11 @@ class ReviewInfo:
         [datestr] = re.match("reviews/([0-9]+-[0-9]+-[0-9]+)", self.path).groups()
         return datetime.fromisoformat(datestr).date()
 
+    @property
+    def slug(self):
+        [slug] = re.match(r"reviews/([0-9]+-[0-9]+-[0-9]+-[^\.]+)\.html", self.path).groups()
+        return slug
+
 
 def fetch_reviews(client) -> list[ReviewInfo]:
     items = client.listitems()["files"]
@@ -145,12 +187,16 @@ def fetch_reviews(client) -> list[ReviewInfo]:
 
 @app.route("/review/")
 def review():
-    client = neocities.NeoCities(api_key=os.getenv("MOUSEADMIN_SITE_API_KEY"))
-    return render_template("review_list.html", items=fetch_reviews(client))
+    client = MouseadminNeocitiesClient()
+    return render_template(
+        "review_list.html",
+        items=fetch_reviews(client),
+        NEOCITIES_DOMAIN=os.getenv("NEOCITIES_DOMAIN", "https://fern.neocities.org"),
+    )
 
 
 @app.route("/review/preview/", methods=["POST"])
-def preview_edit():
+def preview_review():
     kwargs = dict(
         request.form,
         date=datetime.fromisoformat(request.form['date']).date(),
@@ -164,11 +210,34 @@ def preview_edit():
 
 
 @app.route("/review/new/", methods=["GET", "POST"])
-def new_edit():
+def new_review():
     if request.method == "GET":
         return render_template(
             "review_edit.html",
             **FullReview.empty().review_template_context(),
+        )
+    else:
+        client = MouseadminNeocitiesClient()
+        kwargs = dict(
+            request.form,
+            date=datetime.fromisoformat(request.form['date']).date(),
+            rating=Decimal(request.form['rating']),
+        )
+        review = FullReview.new(**kwargs)
+        rendered_template = render_template(
+            "review.html",
+            **review.review_template_context(),
+        )
+        client.upload_strings({review.neocities_path(): rendered_template})
+        return redirect("/review")
+
+
+@app.route("/review/edit/<path>", methods=["GET", "POST"])
+def edit_review(path):
+    if request.method == "GET":
+        return render_template(
+            "review_edit.html",
+            **FullReview.test().review_template_context(),
         )
     else:
         client = MouseadminNeocitiesClient()

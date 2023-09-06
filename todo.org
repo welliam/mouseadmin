@@ -50,6 +50,11 @@ when writing, check for recent saved_at
 - fetch most recent articles, parse, show on main page
 ** TODO prevent saving over a review on /reviews/new
 
+* TODO home page v2
+** TODO edit button
+** TODO visit button
+direct to neocities url
+
 * TODO backups
 ** TODO when editing pages, back up old version on pi
 - file format: YYYY-MM-DD-HH:MM:SS-YYYY-MM-DD-PATH

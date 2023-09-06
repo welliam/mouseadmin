@@ -4,49 +4,63 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
   </head>
   <body>
+    <a href="/review/">Back</a>
     <form id="review-form" method="post">
       <ul>
         <li>
           <label for="title">Title </label>
-          <input name="title" id="title" required />
+          <input
+            name="title"
+            id="title"
+            required
+            value="{{ title }}"
+            {% if title %}disabled{% endif %}
+          />
         </li>
         <li>
           <label for="developer">Developer</label>
-          <input name="developer" id="developer" />
+          <input name="developer" id="developer" value="{{ developer }}"/>
         </li>
         <li>
           <label for="rating"> Rating</label>
           <select name="rating" id="rating">
-            <option value="1">1</option>
-            <option value="1.5">1.5</option>
-            <option value="2">2</option>
-            <option value="2.5">2.5</option>
-            <option value="3">3</option>
-            <option value="3.5">3.5</option>
-            <option value="4">4</option>
-            <option value="4.5">4.5</option>
-            <option value="5">5</option>
+            <option value="1" {% if rating == 1 %}selected{% endif %}>1</option>
+            <option value="1.5" {% if rating == 1.5 %}selected{% endif %}>1.5</option>
+            <option value="2" {% if rating == 2 %}selected{% endif %}>2</option>
+            <option value="2.5" {% if rating == 2.5 %}selected{% endif %}>2.5</option>
+            <option value="3" {% if rating == 3 %}selected{% endif %}>3</option>
+            <option value="3.5" {% if rating == 3.5 %}selected{% endif %}>3.5</option>
+            <option value="4" {% if rating == 4 %}selected{% endif %}>4</option>
+            <option value="4.5" {% if rating == 4.5 %}selected{% endif %}>4.5</option>
+            <option value="5" {% if rating == 5 %}selected{% endif %}>5</option>
           </select>
         </li>
         <li>
           <label for="platform"> Platform</label>
-          <input name="platform" id="platform" />
+          <input name="platform" id="platform" value="{{ platform }}" />
         </li>
         <li>
           <label for="completion"> Completion</label>
-          <input name="completion" id="completion"
+          <input name="completion" id="completion" value="{{ completion }}" />
         </li>
         <li>
           <label for="method"> Method</label>
-          <input name="method" id="method" />
+          <input name="method" id="method" value="{{ method }}" />
         </li>
         <li>
           <label for="date">Date</label>
-          <input type="date" required name="date" id="date" />
+          <input
+            type="date"
+            required
+            name="date"
+            id="date"
+            {% if date_iso %}disabled{% endif %}
+            value="{{ date_iso }}"
+          />
         </li>
         <li>
           <label for="art_url"> Art URL</label>
-          <input name="art_url" id="art_url" />
+          <input name="art_url" id="art_url" value="{{ art_url }}" />
         </li>
         <li>
           <label for="review_html">Review</label>
@@ -55,7 +69,7 @@
             rows="10"
             name="review_html"
             id="review_html"
-          ></textarea>
+          >{{ review_html }}</textarea>
         </li>
         <li>
           <label for="recommendation_html">Recommendation</label>
@@ -64,7 +78,7 @@
             rows="4"
             name="recommendation_html"
             id="recommendation_html"
-          ></textarea>
+          >{{ recommendation_html }}</textarea>
         </li>
         <li>
           <label for="extra_content_html">Extra content html</label>
@@ -72,13 +86,12 @@
             name="extra_content_html"
             id="extra_content_html"
             cols="50"
-            rows="1"
-          >
-          </textarea>
+            rows="10"
+          >{{ extra_content_html }}</textarea>
         </li>
       </ul>
-      <button type="submit">Create review</button>
-      <button formtarget="_blank" id="preview-button" formaction="/review/preview" type="submit">Preview</button>
+      <button type="submit">{% if title %}Edit review{% else %}Create review{% endif %}</button>
+      <button formtarget="_blank" id="preview-button" formaction="/review/preview/" type="submit">Preview</button>
     </form>
   </body>
 </html>
