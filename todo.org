@@ -1,13 +1,8 @@
 https://neocities.org/api
 
-* TODO parsing
-** TODO edit pages to comply with parsable format
-- start with just one, set up html parsing, test, do the rest
-** TODO set up html parsing
-
 * TODO edit interface v1
 ** DONE preview button
-** TODO throttle edits
+** DONE throttle edits
 *** FE approach
 frontend visually "queues" a save, waits until the previous save has finished
 - would have to write js for this
@@ -57,8 +52,15 @@ when writing, check for recent saved_at
 - mouse can let me know if these need to be revived
 
 * TODO deploy the real thing
-- generate API key on dumbiee, set MOUSEADMIN_SITE_API_KEY to it
-- set NEOCITIES_DOMAIN to https://dumbiee.neocities.org
+** TODO generate API key on dumbiee, set MOUSEADMIN_SITE_API_KEY to it
+** TODO set NEOCITIES_DOMAIN to https://dumbiee.neocities.org
+** TODO set and deploy reviews-new as the path
+** TODO create pages
+- for each review:
+  - create page
+  - check if it matches corresponding reviews page
+** TODO rename directory reviews-new to reviews
+** TODO set and deploy reviews as the path
 
 * TODO delete files in app
 clean up home page conveniently
@@ -75,6 +77,9 @@ codemirror seems legit and is free/open?
 https://github.com/codemirror/dev/
 https://codepen.io/DerkJanS/pen/EXMwVz
 ** TODO draft saving
+
+* DONE parsing
+** DONE set up html parsing
 
 * DONE home page v2
 ** DONE edit button

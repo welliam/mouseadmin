@@ -41,7 +41,7 @@
         <button class="dropbtn">select a game ...</button>
         <div class="dropdown-content">
           {% for title, url in urls %}
-          <a href="{{ url }}">alone in the dark: the new nightmare (2)</a>
+            <a href="{{ url }}">{{ title }}</a>
           {% endfor %}
         </div>
       </div>
@@ -56,8 +56,8 @@
         <b>
           ▪ other recents: ▪
           <br />
-          {% for title, url in recent_reviews %}
-          <a href="{{ url }}">{{ title }}</a>
+          {% for review in recent_reviews %}
+            <a href="{{ review.path }}">{{ review.title }} ({{ review.rating }})</a>
           {% endfor %}
         </b>
       </div>
@@ -68,15 +68,15 @@
             <h1>{{ most_recent_review.title }}</h1>
             <h3>
               <font color="#fff">
-                {{ most_recent_review.stars }}<br />{{ most_recent_reviews.score }}
+                {{ most_recent_review.rating_stars }}<br />{{ most_recent_reviews.rating }}
               </font>
             </h3>
           </a>
         </div>
         <div class="review">
-          <b>reviewed on: {{ most_recent_review.date }}</b>
+          <b>reviewed on: {{ most_recent_review.date_string }}</b>
           <hr />
-          {{ most_recent_review.review }}
+          {{ most_recent_review.review_html|safe }}
         </div>
       </div>
     </div>

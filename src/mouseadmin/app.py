@@ -18,9 +18,9 @@ from mouseadmin import neocities
 app = Flask(__name__)
 
 
-REVIEW_NEOCITIES_PATH = "reviews/"
+NEOCITIES_PATH_REVIEW = "reviews/"
 
-REVIEW_HOME_NEOCITIES_PATH = REVIEW_NEOCITIES_PATH + "home.html"
+NEOCITIES_PATH_REVIEW_HOME = NEOCITIES_PATH_REVIEW + "home.html"
 
 NEOCITIES_DOMAIN = os.getenv("NEOCITIES_DOMAIN", "https://fern.neocities.org")
 
@@ -140,7 +140,7 @@ class FullReview:
         )
 
     def neocities_path(self) -> str:
-        return REVIEW_NEOCITIES_PATH + self.path + ".html"
+        return NEOCITIES_PATH_REVIEW + self.path + ".html"
 
     def review_template_context(self) -> dict:
         return dict(
@@ -174,7 +174,7 @@ class ReviewInfo:
         reviews = [
             ReviewInfo(**item)
             for item in items
-            if REVIEW_NEOCITIES_PATH in item["path"]
+            if NEOCITIES_PATH_REVIEW in item["path"]
             and not item["is_directory"]
         ]
         return sorted(reviews, key=lambda review: review.date, reverse=True)
@@ -202,6 +202,14 @@ def fetch_reviews(client) -> list[ReviewInfo]:
 def fetch_full_review_from_slug(slug: str) -> FullReview:
     url = f"{NEOCITIES_DOMAIN}/reviews/{slug}.html"
     return FullReview.parse_review(slug, requests.get(url).text)
+
+
+def fetch_home_content(client) -> dict:
+    reviews = client.listitems()["files"]
+    dict(
+        game_review_count=len(reviews),
+        urls=[],
+    )
 
 
 @app.route("/review/")
