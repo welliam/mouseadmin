@@ -109,8 +109,8 @@ class FullReview:
             art_url=self.art_url,
             review_html=self.review_html,
             recommendation_html=self.recommendation_html,
-            extra_content_html=self.extra_content_html,
-            rating_stars=("*" * int(self.rating) + ("." if self.rating - int(self.rating) else "")) if self.rating else "",
+            extra_content_html=self.extra_content_html.strip(),
+            rating_stars=("★" * int(self.rating) + ("☆" if self.rating - int(self.rating) else "")) if self.rating else "",
         )
 
 

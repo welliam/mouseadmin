@@ -30,7 +30,7 @@
         <img src="{{ art_url }}" />
         <h1 class="title"><p>{{ title }}</p></h1>
         <h2>{{ developer }}</h2>
-        <h3 class="rating">{{ rating_stars }}</h3>
+        <h3 class="rating">{{ rating_stars }}<br />({{rating}})</h3>
         <h4>
           platform: <b>{{ platform }}</b><br />
           completion: <b>{{ completion }}</b><br />
@@ -49,7 +49,10 @@
           {{ recommendation_html|safe }}
         </div>
       </div>
-      <div id="extras">{{ extra_content_html|safe }}</div>
+      {% if extra_content_html %}
+        <div class="divider"></div>
+        <div id="extras" class="extras">{{ extra_content_html|safe }}</div>
+      {% endif %}
     </div>
   </body>
 </html>
