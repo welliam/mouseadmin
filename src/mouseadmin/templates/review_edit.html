@@ -2,6 +2,37 @@
   <head>
     <title>New review</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
+    <script>
+      function appendExtras(value) {
+        document.getElementById("extra_content_html").value =
+          (
+            document.getElementById("extra_content_html")
+              .value
+              + `\n${value}`
+          ).trim();
+      }
+      function appendExtrasSection() {
+        appendExtras(`\n<div class="extras"> </div>\n`);
+      }
+      function appendDLCSection() {
+        appendExtras(`
+<div id="dlc">
+<img src="{ DLC art here }">
+<h1>DLC review: { DLC name here }</h1>
+<h2>{ date here }</h2>
+<h3>{ rating here }</h3>
+<hr>
+{ review here }
+</div>
+<div class="game-rec">
+  <div class="game-rec-q">so, do i recommend this?</div>
+  <div class="game-rec-a">
+    { recommendation here }
+  </div>
+</div>
+`);
+      }
+    </script>
   </head>
   <body>
     <a href="/review/">Back</a>
@@ -82,12 +113,18 @@
         </li>
         <li>
           <label for="extra_content_html">Extra content html</label>
-          <textarea
-            name="extra_content_html"
-            id="extra_content_html"
-            cols="50"
-            rows="10"
-          >{{ extra_content_html }}</textarea>
+          <div style="display: inline-block;">
+            <div>
+              <textarea
+                name="extra_content_html"
+                id="extra_content_html"
+                cols="50"
+                rows="10"
+                >{{ extra_content_html }}</textarea>
+            </div>
+            <button type="button" onclick="appendExtrasSection()">Add extras section</button>
+            <button type="button" onclick="appendDLCSection()">Add DLC section</button>
+          </div>
         </li>
       </ul>
       <button type="submit">{% if title %}Edit review{% else %}Create review{% endif %}</button>

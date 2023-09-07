@@ -103,3 +103,6 @@ direct to neocities url
 ** DONE fix stars
 ** DONE date format
 ** DONE fix box on review
+
+* TODO home page problem
+append random bytes on to page size until its rating is = mod 3
