@@ -37,7 +37,7 @@ class MouseadminNeocitiesClient:
         )
 
     def _get_page(self, path):
-        ppath = pathlib.Path(f'cache/{path}')
+        ppath = pathlib.Path(f"cache/{path}")
         [review] = [r for r in self.fetch_reviews() if r.path == path]
         fetched = False
         if not ppath.exists() or (
@@ -47,9 +47,9 @@ class MouseadminNeocitiesClient:
             print(f"FETCHING {path}")
             url = f"{NEOCITIES_DOMAIN}/{path}"
             text = requests.get(url).text
-            open(f'cache/{path}', 'w').write(text)
+            open(f"cache/{path}", "w").write(text)
             fetched = True
-        return fetched, open(f'cache/{path}').read()
+        return fetched, open(f"cache/{path}").read()
 
     def get_page(self, path):
         _, result = self._get_page(path)
@@ -77,13 +77,12 @@ class MouseadminNeocitiesClient:
         files is a dict {filename: string_content}
         """
         newest_review_updated_at = max(
-            review.updated_at_datetime
-            for review in self.fetch_reviews()
+            review.updated_at_datetime for review in self.fetch_reviews()
         )
-        seconds_to_sleep = (timedelta(minutes=1.1) - (
-            datetime.now(timezone.utc)
-            - newest_review_updated_at
-        )).total_seconds()
+        seconds_to_sleep = (
+            timedelta(minutes=1.1)
+            - (datetime.now(timezone.utc) - newest_review_updated_at)
+        ).total_seconds()
         if seconds_to_sleep > 0:
             print(f"THROTTLING SAVE for {seconds_to_sleep} seconds")
             time.sleep(seconds_to_sleep)
@@ -92,10 +91,12 @@ class MouseadminNeocitiesClient:
             neocities_path: self._temp_file_of(string_content)
             for neocities_path, string_content in files.items()
         }
-        self._client.upload(*(
-            (file.name, neocities_path)
-            for neocities_path, file in file_objects.items()
-        ))
+        self._client.upload(
+            *(
+                (file.name, neocities_path)
+                for neocities_path, file in file_objects.items()
+            )
+        )
         for path, contents in files.items():
             open("cache/f{path}", "w").write(contents)
 
@@ -185,7 +186,11 @@ class FullReview:
             review_html=self.review_html,
             recommendation_html=self.recommendation_html,
             extra_content_html=self.extra_content_html.strip(),
-            rating_stars=("★" * int(self.rating) + ("☆" if self.rating - int(self.rating) else "")) if self.rating else "",
+            rating_stars=(
+                "★" * int(self.rating) + ("☆" if self.rating - int(self.rating) else "")
+            )
+            if self.rating
+            else "",
         )
 
 
@@ -202,8 +207,7 @@ class ReviewInfo:
         reviews = [
             ReviewInfo(**item)
             for item in items
-            if NEOCITIES_PATH_REVIEW in item["path"]
-            and not item["is_directory"]
+            if NEOCITIES_PATH_REVIEW in item["path"] and not item["is_directory"]
         ]
         return sorted(reviews, key=lambda review: review.date, reverse=True)
 
@@ -218,9 +222,10 @@ class ReviewInfo:
 
     @property
     def slug(self):
-        [slug] = re.match(r"reviews/([0-9]+-[0-9]+-[0-9]+-[^\.]+)\.html", self.path).groups()
+        [slug] = re.match(
+            r"reviews/([0-9]+-[0-9]+-[0-9]+-[^\.]+)\.html", self.path
+        ).groups()
         return slug
-
 
 
 def fetch_full_review_from_slug(client, slug: str) -> FullReview:
@@ -232,7 +237,9 @@ def fetch_home_context(client) -> dict:
     reviews = fetch_reviews(client)
     most_recent_review_info = reviews[0]
     most_recent_review = fetch_full_review_from_slug(client, reviews[0].slug)
-    recent_reviews = [fetch_full_review_from_slug(client, review.slug) for review in reviews[1:3]]
+    recent_reviews = [
+        fetch_full_review_from_slug(client, review.slug) for review in reviews[1:3]
+    ]
     return dict(
         game_review_count=len(reviews),
         urls=[],
@@ -256,8 +263,8 @@ def review():
 def preview_review():
     kwargs = dict(
         request.form,
-        date=datetime.fromisoformat(request.form['date']).date(),
-        rating=Decimal(request.form['rating']),
+        date=datetime.fromisoformat(request.form["date"]).date(),
+        rating=Decimal(request.form["rating"]),
     )
     review = FullReview.new(**kwargs)
     return render_template(
@@ -277,12 +284,14 @@ def new_review():
         client = MouseadminNeocitiesClient()
         kwargs = dict(
             request.form,
-            date=datetime.fromisoformat(request.form['date']).date(),
-            rating=Decimal(request.form['rating']),
+            date=datetime.fromisoformat(request.form["date"]).date(),
+            rating=Decimal(request.form["rating"]),
         )
         review = FullReview.new(**kwargs)
         existing_reviews = client.fetch_reviews()
-        assert review.slug not in [existing_review.slug for existing_review in existing_reviews], "Review already exists! Not saving"
+        assert review.slug not in [
+            existing_review.slug for existing_review in existing_reviews
+        ], "Review already exists! Not saving"
 
         rendered_template = render_template(
             "review.html",
@@ -303,8 +312,8 @@ def edit_review(slug):
     else:
         kwargs = dict(
             request.form,
-            date=datetime.fromisoformat(request.form['date']).date(),
-            rating=Decimal(request.form['rating']),
+            date=datetime.fromisoformat(request.form["date"]).date(),
+            rating=Decimal(request.form["rating"]),
         )
         review = FullReview.new(**kwargs)
         rendered_template = render_template(
@@ -318,7 +327,4 @@ def edit_review(slug):
 @app.route("/review/home", methods=["GET"])
 def home_preview():
     client = MouseadminNeocitiesClient()
-    return render_template(
-        "home.html",
-        **fetch_home_context(client)
-    )
+    return render_template("home.html", **fetch_home_context(client))
