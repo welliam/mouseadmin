@@ -11,6 +11,7 @@ import os
 from flask import Flask, render_template, request, redirect
 from bs4 import BeautifulSoup
 from typing import Optional
+import pathlib
 
 from mouseadmin import neocities
 
@@ -36,11 +37,26 @@ class MouseadminNeocitiesClient:
         )
 
     def get_page(self, path):
-        url = f"{NEOCITIES_DOMAIN}{path}"
-        return requests.get(url).text
+        ppath = pathlib.Path(f'cache/{path}')
+        [review] = [r for r in self.fetch_reviews() if r.path == path]
+        if not ppath.exists() or (
+            datetime.fromtimestamp(ppath.stat().st_mtime).astimezone()
+            < review.updated_at_datetime
+        ):
+            print(f"FETCHING {path}")
+            url = f"{NEOCITIES_DOMAIN}/{path}"
+            text = requests.get(url).text
+            open(f'cache/{path}', 'w').write(text)
+        return open(f'cache/{path}').read()
 
-    def listitems(self):
-        return self._client.listitems()
+    def get_all_pages(self):
+        for review in self.fetch_reviews():
+            self.get_page(review.path)
+            time.sleep(5)
+
+    def fetch_reviews(self) -> list["ReviewInfo"]:
+        items = self._client.listitems()["files"]
+        return ReviewInfo.parse_reviews(items)
 
     def _temp_file_of(self, string_content: str):
         review_file = tempfile.NamedTemporaryFile(mode="w")
@@ -54,7 +70,7 @@ class MouseadminNeocitiesClient:
         """
         newest_review_updated_at = max(
             review.updated_at_datetime
-            for review in fetch_reviews(self)
+            for review in self.fetch_reviews()
         )
         seconds_to_sleep = (timedelta(minutes=1.1) - (
             datetime.now(timezone.utc)
@@ -72,6 +88,8 @@ class MouseadminNeocitiesClient:
             (file.name, neocities_path)
             for neocities_path, file in file_objects.items()
         ))
+        for path, contents in files.items():
+            open("cache/f{path}", "w").write(contents)
 
 
 @dataclass
@@ -103,7 +121,6 @@ class FullReview:
             recommendation_html="",
             extra_content_html="",
         )
-
 
     @property
     def slug(self):
@@ -197,10 +214,6 @@ class ReviewInfo:
         return slug
 
 
-def fetch_reviews(client) -> list[ReviewInfo]:
-    items = client.listitems()["files"]
-    return ReviewInfo.parse_reviews(items)
-
 
 def fetch_full_review_from_slug(client, slug: str) -> FullReview:
     path = f"/reviews/{slug}.html"
@@ -260,7 +273,7 @@ def new_review():
             rating=Decimal(request.form['rating']),
         )
         review = FullReview.new(**kwargs)
-        existing_reviews = fetch_reviews(client)
+        existing_reviews = client.fetch_reviews()
         assert review.slug not in [existing_review.slug for existing_review in existing_reviews], "Review already exists! Not saving"
 
         rendered_template = render_template(
