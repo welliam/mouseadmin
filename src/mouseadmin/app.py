@@ -1,3 +1,4 @@
+from functools import cached_property
 import time
 from dateutil import parser
 import requests
@@ -26,79 +27,6 @@ NEOCITIES_PATH_REVIEW_HOME = NEOCITIES_PATH_REVIEW + "home.html"
 NEOCITIES_DOMAIN = os.getenv("NEOCITIES_DOMAIN", "https://fern.neocities.org")
 
 API_KEY = os.getenv("MOUSEADMIN_SITE_API_KEY")
-
-
-class MouseadminNeocitiesClient:
-    _client: neocities.NeoCities
-
-    def __init__(self):
-        self._client = neocities.NeoCities(
-            api_key=API_KEY,
-        )
-
-    def _get_page(self, path):
-        ppath = pathlib.Path(f"cache/{path}")
-        [review] = [r for r in self.fetch_reviews() if r.path == path]
-        fetched = False
-        if not ppath.exists() or (
-            datetime.fromtimestamp(ppath.stat().st_mtime).astimezone()
-            < review.updated_at_datetime
-        ):
-            print(f"FETCHING {path}")
-            url = f"{NEOCITIES_DOMAIN}/{path}"
-            text = requests.get(url).text
-            open(f"cache/{path}", "w").write(text)
-            fetched = True
-        return fetched, open(f"cache/{path}").read()
-
-    def get_page(self, path):
-        _, result = self._get_page(path)
-        return result
-
-    def get_all_pages(self):
-        for review in self.fetch_reviews():
-            fetched, _ = self._get_page(review.path)
-            if fetched:
-                time.sleep(5)
-
-    def fetch_reviews(self) -> list["ReviewInfo"]:
-        print("LISTITEMS")
-        items = self._client.listitems()["files"]
-        return ReviewInfo.parse_reviews(items)
-
-    def _temp_file_of(self, string_content: str):
-        review_file = tempfile.NamedTemporaryFile(mode="w")
-        review_file.write(string_content)
-        review_file.seek(0)
-        return review_file
-
-    def upload_strings(self, files: dict[str, str]):
-        """
-        files is a dict {filename: string_content}
-        """
-        newest_review_updated_at = max(
-            review.updated_at_datetime for review in self.fetch_reviews()
-        )
-        seconds_to_sleep = (
-            timedelta(minutes=1.1)
-            - (datetime.now(timezone.utc) - newest_review_updated_at)
-        ).total_seconds()
-        if seconds_to_sleep > 0:
-            print(f"THROTTLING SAVE for {seconds_to_sleep} seconds")
-            time.sleep(seconds_to_sleep)
-
-        file_objects = {
-            neocities_path: self._temp_file_of(string_content)
-            for neocities_path, string_content in files.items()
-        }
-        self._client.upload(
-            *(
-                (file.name, neocities_path)
-                for neocities_path, file in file_objects.items()
-            )
-        )
-        for path, contents in files.items():
-            open("cache/f{path}", "w").write(contents)
 
 
 @dataclass
@@ -228,25 +156,100 @@ class ReviewInfo:
         return slug
 
 
-def fetch_full_review_from_slug(client, slug: str) -> FullReview:
-    path = f"/reviews/{slug}.html"
-    return FullReview.parse_review(client.get_page(path))
+class MouseadminNeocitiesClient:
+    _client: neocities.NeoCities
 
+    def __init__(self):
+        self._client = neocities.NeoCities(
+            api_key=API_KEY,
+        )
 
-def fetch_home_context(client) -> dict:
-    reviews = fetch_reviews(client)
-    most_recent_review_info = reviews[0]
-    most_recent_review = fetch_full_review_from_slug(client, reviews[0].slug)
-    recent_reviews = [
-        fetch_full_review_from_slug(client, review.slug) for review in reviews[1:3]
-    ]
-    return dict(
-        game_review_count=len(reviews),
-        urls=[],
-        most_recent_review=most_recent_review,
-        recent_reviews=recent_reviews,
-        NEOCITIES_DOMAIN=NEOCITIES_DOMAIN,
-    )
+    @cached_property
+    def items(self):
+        print("LISTITEMS")
+        return self._client.listitems()
+
+    def _get_page(self, path):
+        ppath = pathlib.Path(f"cache/{path}")
+        [review] = [r for r in self.fetch_reviews() if r.path == path]
+        fetched = False
+        if not ppath.exists() or (
+            datetime.fromtimestamp(ppath.stat().st_mtime).astimezone()
+            < review.updated_at_datetime
+        ):
+            print(f"FETCHING {path}")
+            url = f"{NEOCITIES_DOMAIN}/{path}"
+            text = requests.get(url).text
+            open(f"cache/{path}", "w").write(text)
+            fetched = True
+        return fetched, open(f"cache/{path}").read()
+
+    def get_page(self, path) -> FullReview:
+        _, result = self._get_page(path)
+        return FullReview.parse_review(result)
+
+    def get_all_pages(self) -> list[FullReview]:
+        pages: list[FullReview] = []
+        for review in self.fetch_reviews():
+            fetched, content = self._get_page(review.path)
+            pages.append(FullReview.parse_review(content))
+            if fetched:
+                time.sleep(10)
+        return pages
+
+    def fetch_reviews(self) -> list["ReviewInfo"]:
+        items = self.items["files"]
+        return ReviewInfo.parse_reviews(items)
+
+    def _temp_file_of(self, string_content: str):
+        review_file = tempfile.NamedTemporaryFile(mode="w")
+        review_file.write(string_content)
+        review_file.seek(0)
+        return review_file
+
+    def upload_strings(self, files: dict[str, str]):
+        """
+        files is a dict {filename: string_content}
+        """
+        newest_review_updated_at = max(
+            review.updated_at_datetime for review in self.fetch_reviews()
+        )
+        seconds_to_sleep = (
+            timedelta(minutes=1.1)
+            - (datetime.now(timezone.utc) - newest_review_updated_at)
+        ).total_seconds()
+        if seconds_to_sleep > 0:
+            print(f"THROTTLING SAVE for {seconds_to_sleep} seconds")
+            time.sleep(seconds_to_sleep)
+
+        file_objects = {
+            neocities_path: self._temp_file_of(string_content)
+            for neocities_path, string_content in files.items()
+        }
+        self._client.upload(
+            *(
+                (file.name, neocities_path)
+                for neocities_path, file in file_objects.items()
+            )
+        )
+        for path, contents in files.items():
+            open("cache/f{path}", "w").write(contents)
+
+    def fetch_full_review_from_slug(self, slug: str) -> FullReview:
+        path = f"/reviews/{slug}.html"
+        return self.get_page(path)
+
+    def fetch_home_context(self) -> dict:
+        reviews = self.get_all_pages()
+        most_recent_review = reviews[0]
+        recent_reviews = reviews[1:3]
+        return dict(
+            game_review_count=len(reviews),
+            urls=[],
+            most_recent_review=most_recent_review,
+            recent_reviews=recent_reviews,
+            NEOCITIES_DOMAIN=NEOCITIES_DOMAIN,
+        )
 
 
 @app.route("/review/")
@@ -307,7 +310,7 @@ def edit_review(slug):
     if request.method == "GET":
         return render_template(
             "review_edit.html",
-            **fetch_full_review_from_slug(client, slug).review_template_context(),
+            **client.fetch_full_review_from_slug(slug).review_template_context(),
         )
     else:
         kwargs = dict(
@@ -327,4 +330,4 @@ def edit_review(slug):
 @app.route("/review/home", methods=["GET"])
 def home_preview():
     client = MouseadminNeocitiesClient()
-    return render_template("home.html", **fetch_home_context(client))
+    return render_template("home.html", **client.fetch_home_context())
