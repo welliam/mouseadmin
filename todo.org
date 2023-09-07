@@ -44,7 +44,7 @@ when writing, check for recent saved_at
 ** TODO set up writing to website: home page
 - parse dates from list endpoint to get most recent ones
 - fetch most recent articles, parse, show on main page
-** TODO home page problem: can't get list of all game titles and ratings
+*** TODO home page problem: can't get list of all game titles and ratings
 - unslugify name to get name
   - what about colons? do something about this? try to get python slugify to treat colons well?
 - append random bytes on to page size until its rating is = mod 3

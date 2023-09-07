@@ -76,7 +76,6 @@ class MouseadminNeocitiesClient:
 
 @dataclass
 class FullReview:
-    path: str
     title: str
     developer: str
     rating: Decimal
@@ -92,7 +91,6 @@ class FullReview:
     @classmethod
     def empty(cls):
         return cls(
-            path="",
             title="",
             developer="",
             rating=3,
@@ -106,11 +104,14 @@ class FullReview:
             extra_content_html="",
         )
 
+
+    @property
+    def slug(self):
+        return f"{str(self.date)}-{slugify(self.title)}"
+
     @classmethod
     def new(cls, date: date, title: str, **kwargs):
-        path = f"{str(date)}-{slugify(title)}"
         return cls(
-            path=path,
             date=date,
             title=title,
             **kwargs,
@@ -124,11 +125,10 @@ class FullReview:
         return content.encode_contents().decode().strip()
 
     @classmethod
-    def parse_review(cls, path: str, review_html: str):
+    def parse_review(cls, review_html: str):
         soup = BeautifulSoup(review_html, features="html.parser")
         house = soup.find(id="game-house")
         return cls(
-            path=path,
             title=house["data-title"],
             developer=house["data-developer"],
             rating=Decimal(house["data-rating"]),
@@ -143,11 +143,11 @@ class FullReview:
         )
 
     def neocities_path(self) -> str:
-        return NEOCITIES_PATH_REVIEW + self.path + ".html"
+        return NEOCITIES_PATH_REVIEW + self.slug + ".html"
 
     def review_template_context(self) -> dict:
         return dict(
-            path=self.path,
+            slug=self.slug,
             title=self.title,
             developer=self.developer,
             rating=self.rating,
@@ -204,7 +204,7 @@ def fetch_reviews(client) -> list[ReviewInfo]:
 
 def fetch_full_review_from_slug(client, slug: str) -> FullReview:
     path = f"/reviews/{slug}.html"
-    return FullReview.parse_review(slug, client.get_page(path))
+    return FullReview.parse_review(client.get_page(path))
 
 
 def fetch_home_context(client) -> dict:
@@ -260,6 +260,9 @@ def new_review():
             rating=Decimal(request.form['rating']),
         )
         review = FullReview.new(**kwargs)
+        existing_reviews = fetch_reviews(client)
+        assert review.slug not in [existing_review.slug for existing_review in existing_reviews], "Review already exists! Not saving"
+
         rendered_template = render_template(
             "review.html",
             **review.review_template_context(),
@@ -268,13 +271,13 @@ def new_review():
         return redirect("/review")
 
 
-@app.route("/review/edit/<path>", methods=["GET", "POST"])
-def edit_review(path):
+@app.route("/review/edit/<slug>", methods=["GET", "POST"])
+def edit_review(slug):
     client = MouseadminNeocitiesClient()
     if request.method == "GET":
         return render_template(
             "review_edit.html",
-            **fetch_full_review_from_slug(client, path).review_template_context(),
+            **fetch_full_review_from_slug(client, slug).review_template_context(),
         )
     else:
         kwargs = dict(
