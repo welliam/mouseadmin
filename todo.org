@@ -49,7 +49,7 @@ when writing, check for recent saved_at
   - what about colons? do something about this? try to get python slugify to treat colons well?
 - append random bytes on to page size until its rating is = mod 3
   - then use page size to get rating amount
-** TODO prevent saving over a review on /reviews/new
+** DONE prevent saving over a review on /reviews/new
 * TODO backups
 ** TODO when editing pages, back up old version on pi
 - file format: YYYY-MM-DD-HH:MM:SS-YYYY-MM-DD-PATH
