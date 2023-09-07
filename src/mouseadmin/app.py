@@ -36,9 +36,10 @@ class MouseadminNeocitiesClient:
             api_key=API_KEY,
         )
 
-    def get_page(self, path):
+    def _get_page(self, path):
         ppath = pathlib.Path(f'cache/{path}')
         [review] = [r for r in self.fetch_reviews() if r.path == path]
+        fetched = False
         if not ppath.exists() or (
             datetime.fromtimestamp(ppath.stat().st_mtime).astimezone()
             < review.updated_at_datetime
@@ -47,14 +48,21 @@ class MouseadminNeocitiesClient:
             url = f"{NEOCITIES_DOMAIN}/{path}"
             text = requests.get(url).text
             open(f'cache/{path}', 'w').write(text)
-        return open(f'cache/{path}').read()
+            fetched = True
+        return fetched, open(f'cache/{path}').read()
+
+    def get_page(self, path):
+        _, result = self._get_page(path)
+        return result
 
     def get_all_pages(self):
         for review in self.fetch_reviews():
-            self.get_page(review.path)
-            time.sleep(5)
+            fetched, _ = self._get_page(review.path)
+            if fetched:
+                time.sleep(5)
 
     def fetch_reviews(self) -> list["ReviewInfo"]:
+        print("LISTITEMS")
         items = self._client.listitems()["files"]
         return ReviewInfo.parse_reviews(items)
 
