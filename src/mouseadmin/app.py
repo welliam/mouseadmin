@@ -101,14 +101,16 @@ class FullReview:
         return "/" + NEOCITIES_PATH_REVIEW + self.slug + ".html"
 
     def formatted_date(self):
+        if not self.date:
+            return None
         formatted = self.date.strftime("%Y %b %-d").lower()
         for abbrev, full in [
-                ('mar', 'march')
-                ('apr', 'april')
-                ('may', 'may')
-                ('jun', 'june')
-                ('jul', 'july')
-                ('sep', 'sept')
+                ('mar', 'march'),
+                ('apr', 'april'),
+                ('may', 'may'),
+                ('jun', 'june'),
+                ('jul', 'july'),
+                ('sep', 'sept'),
         ]:
             formatted = formatted.replace(abbrev, full)
         return formatted
