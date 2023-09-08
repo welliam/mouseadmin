@@ -23,6 +23,10 @@ clean up home page conveniently
 can be useful for edits on reviews
 
 * TODO edit interface v2
+** TODO igdb data pulling
+*** TODO developer/year/platform from igdb
+platform we can "guess" based off what's most likely for us to pick (ie switch/ps4/pc over other platforms)
+*** TODO pull image from igdb
 ** TODO show preview alongside edit interface
 - pull css from site to show accurately
 - iframe to isolate styles? or maybe just don't care and slam the styles in the page
