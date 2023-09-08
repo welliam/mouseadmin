@@ -341,12 +341,17 @@ def new_review():
             "review.html",
             **review.review_template_context(),
         )
+        reviews = sorted(
+            [review, *client.list_full_reviews()],
+            key=lambda review: review.date,
+            reverse=True
+        )
         client.upload_strings(
             {
                 review.neocities_path: rendered_template,
                 NEOCITIES_PATH_REVIEW_HOME: render_template(
                     "home.html",
-                    **client.fetch_home_context([review, *client.list_full_reviews()]),
+                    **client.fetch_home_context(reviews),
                 ),
             }
         )
