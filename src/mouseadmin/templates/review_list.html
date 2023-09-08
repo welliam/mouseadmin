@@ -2,7 +2,7 @@
   <body>
     <a href="/review/new">New review</a>
     {% for item in items %}
-    <li><a href="{{ NEOCITIES_DOMAIN }}/{{item.path}}">{{ item.slug }}</a> - <a href="/review/edit/{{ item.slug }}">Edit</li>
+    <li><a href="{{ NEOCITIES_DOMAIN }}{{item.neocities_path}}">{{ item.slug }}</a> - <a href="/review/edit/{{ item.slug }}">Edit</li>
     {% endfor %}
   </body>
 </html>

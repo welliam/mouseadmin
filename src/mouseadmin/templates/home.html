@@ -31,8 +31,8 @@
       <a href="/reviews/three-star"><font color="#aab3e8">★★★</font></a
       ><font color="#645796">★★</font><br />
       had a great time :
-      <a href="/reviews/four-star"><font color="#aab3e8">★★★★</font></a>
-      <font color="#645796">★</font><br />
+      <a href="/reviews/four-star"><font color="#aab3e8">★★★★</font></a
+      ><font color="#645796">★</font><br />
       essentially a perfect experience :
       <a href="/reviews/five-star"><font color="#aab3e8">★★★★★</font></a>
       <p>total games reviewed: <b>{{ game_review_count }}</b></p>
@@ -40,8 +40,11 @@
       <div class="dropdown">
         <button class="dropbtn">select a game ...</button>
         <div class="dropdown-content">
-          {% for title, url in urls %}
-            <a href="{{ url }}">{{ title }}</a>
+          {% for letter, reviews in reviews_by_first_letter %}
+            -- {{ letter }} --
+            {% for review in reviews %}
+              <a href="{{ review.neocities_path }}">{{ review.title }} ({{ review.rating }})</a>
+            {% endfor %}
           {% endfor %}
         </div>
       </div>
@@ -57,18 +60,19 @@
           ▪ other recents: ▪
           <br />
           {% for review in recent_reviews %}
-            <a href="{{ review.path }}">{{ review.title }} ({{ review.rating }})</a>
+            <a href="{{ review.neocities_path }}">{{ review.title }} ({{ review.rating }})</a>
+            {% if not loop.last %} ▪ {% endif %}
           {% endfor %}
         </b>
       </div>
       <div class="house">
         <div class="info">
-          <a href="{{ most_recent_review.path }}" style="text-decoration: none">
+          <a href="{{ most_recent_review.neocities_path }}" style="text-decoration: none">
             <img src="{{ most_recent_review.art_url }}" />
             <h1>{{ most_recent_review.title }}</h1>
             <h3>
               <font color="#fff">
-                {{ most_recent_review.rating_stars }}<br />{{ most_recent_review.rating }}
+                {{ most_recent_review.rating_stars }}<br />({{ most_recent_review.rating }})
               </font>
             </h3>
           </a>
