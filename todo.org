@@ -1,5 +1,7 @@
 https://neocities.org/api
 
+* TODO make completion, method dropdowns
+
 * TODO backups
 ** TODO when editing pages, back up old version on pi
 - file format: YYYY-MM-DD-HH:MM:SS-YYYY-MM-DD-PATH

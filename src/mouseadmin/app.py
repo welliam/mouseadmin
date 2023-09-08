@@ -100,6 +100,19 @@ class FullReview:
     def neocities_path(self) -> str:
         return "/" + NEOCITIES_PATH_REVIEW + self.slug + ".html"
 
+    def formatted_date(self):
+        formatted = self.date.strftime("%Y %b %-d").lower()
+        for abbrev, full in [
+                ('mar', 'march')
+                ('apr', 'april')
+                ('may', 'may')
+                ('jun', 'june')
+                ('jul', 'july')
+                ('sep', 'sept')
+        ]:
+            formatted = formatted.replace(abbrev, full)
+        return formatted
+
     def review_template_context(self) -> dict:
         return dict(
             slug=self.slug,
@@ -111,7 +124,7 @@ class FullReview:
             completion=self.completion,
             method=self.method,
             date_iso=str(self.date) if self.date else None,
-            date_string=self.date.strftime("%Y %b %-d").lower() if self.date else None,
+            date_string=self.formatted_date(),
             art_url=self.art_url,
             review_html=self.review_html,
             recommendation_html=self.recommendation_html,
