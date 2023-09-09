@@ -61,7 +61,7 @@ class FullReview:
 
     @property
     def slug(self):
-        return f"{str(self.date)}-{slugify(self.title)}"
+        return slugify(self.title)
 
     @classmethod
     def new(cls, date: date, title: str, **kwargs):
@@ -105,12 +105,12 @@ class FullReview:
             return None
         formatted = self.date.strftime("%Y %b %-d").lower()
         for abbrev, full in [
-                ('mar', 'march'),
-                ('apr', 'april'),
-                ('may', 'may'),
-                ('jun', 'june'),
-                ('jul', 'july'),
-                ('sep', 'sept'),
+            ("mar", "march"),
+            ("apr", "april"),
+            ("may", "may"),
+            ("jun", "june"),
+            ("jul", "july"),
+            ("sep", "sept"),
         ]:
             formatted = formatted.replace(abbrev, full)
         return formatted
@@ -139,7 +139,7 @@ class FullReview:
         )
 
 
-DATE_FROM_SLUG_REGEX = f"{NEOCITIES_PATH_REVIEW}([0-9]+-[0-9]+-[0-9]+)"
+# DATE_FROM_SLUG_REGEX = f"{NEOCITIES_PATH_REVIEW}([0-9]+-[0-9]+-[0-9]+)"
 
 
 @dataclass
@@ -157,23 +157,18 @@ class ReviewInfo:
             for item in items
             if NEOCITIES_PATH_REVIEW in item["path"]
             and not item["is_directory"]
-            and re.match(DATE_FROM_SLUG_REGEX, item["path"])
+            and not "home.html" in item["path"]
         ]
-        return sorted(reviews, key=lambda review: review.date, reverse=True)
+        return reviews
 
     @property
     def updated_at_datetime(self) -> datetime:
         return parser.parse(self.updated_at)
 
     @property
-    def date(self):
-        [datestr] = re.match(DATE_FROM_SLUG_REGEX, self.path).groups()
-        return datetime.fromisoformat(datestr).date()
-
-    @property
     def slug(self):
         [slug] = re.match(
-            f"{NEOCITIES_PATH_REVIEW}([0-9]+-[0-9]+-[0-9]+-[^\\.]+)\\.html", self.path
+            f"{NEOCITIES_PATH_REVIEW}([^\\.]+)\\.html", self.path
         ).groups()
         return slug
 
@@ -220,7 +215,7 @@ class MouseadminNeocitiesClient:
                 print("THROTTLING FETCHES")
                 time.sleep(10)
             has_fetched = has_fetched or fetched
-        return pages
+        return sorted(pages, key=lambda page: page.date, reverse=True)
 
     def fetch_reviews_info(self) -> list["ReviewInfo"]:
         items = self.items["files"]
@@ -298,7 +293,9 @@ def review():
     client = MouseadminNeocitiesClient()
     return render_template(
         "review_list.html",
-        items=client.list_full_reviews(),
+        items=[
+            review.review_template_context() for review in client.list_full_reviews()
+        ],
         NEOCITIES_DOMAIN=NEOCITIES_DOMAIN,
     )
 
@@ -332,7 +329,7 @@ def new_review():
             rating=Decimal(request.form["rating"]),
         )
         review = FullReview.new(**kwargs)
-        existing_reviews = client.fetch_reviews_info()
+        existing_reviews = client.list_full_reviews()
         assert review.slug not in [
             existing_review.slug for existing_review in existing_reviews
         ], "Review already exists! Not saving"
@@ -344,7 +341,7 @@ def new_review():
         reviews = sorted(
             [review, *client.list_full_reviews()],
             key=lambda review: review.date,
-            reverse=True
+            reverse=True,
         )
         client.upload_strings(
             {
