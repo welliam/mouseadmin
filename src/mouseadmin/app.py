@@ -139,9 +139,6 @@ class FullReview:
         )
 
 
-# DATE_FROM_SLUG_REGEX = f"{NEOCITIES_PATH_REVIEW}([0-9]+-[0-9]+-[0-9]+)"
-
-
 @dataclass
 class ReviewInfo:
     is_directory: bool
@@ -374,10 +371,14 @@ def edit_review(slug):
             "review.html",
             **review.review_template_context(),
         )
-        reviews = [
-            (old_review if old_review.slug != slug else review)
-            for old_review in client.list_full_reviews()
-        ]
+        reviews = sorted(
+            [
+                (old_review if old_review.slug != slug else review)
+                for old_review in client.list_full_reviews()
+            ],
+            key=lambda review: review.date,
+            reverse=True,
+        )
         client.upload_strings(
             {
                 review.neocities_path: rendered_template,
