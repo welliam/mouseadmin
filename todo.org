@@ -8,15 +8,15 @@ https://neocities.org/api
 - mouse can let me know if these need to be revived
 
 * TODO deploy the real thing
-** TODO generate API key on dumbiee, set MOUSEADMIN_SITE_API_KEY to it
-** TODO set NEOCITIES_DOMAIN to https://dumbiee.neocities.org
-** TODO set and deploy reviews-new as the path
-** TODO create pages
+** DONE generate API key on dumbiee, set MOUSEADMIN_SITE_API_KEY to it
+** DONE set NEOCITIES_DOMAIN to https://dumbiee.neocities.org
+** DONE set and deploy reviews-new as the path
+** DONE create pages
 - for each review:
   - create page
   - check if it matches corresponding reviews page
-** TODO rename directory reviews-new to reviews
-** TODO set and deploy reviews as the path
+** DONE rename directory reviews-new to reviews
+** DONE set and deploy reviews as the path
 
 * TODO delete files in app
 clean up home page conveniently

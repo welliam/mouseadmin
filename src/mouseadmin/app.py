@@ -20,7 +20,7 @@ from mouseadmin import neocities
 app = Flask(__name__)
 
 
-NEOCITIES_PATH_REVIEW = "reviews-new/"
+NEOCITIES_PATH_REVIEW = "reviews/"
 
 NEOCITIES_PATH_REVIEW_HOME = NEOCITIES_PATH_REVIEW + "home.html"
 
