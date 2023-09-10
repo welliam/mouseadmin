@@ -152,7 +152,7 @@ class ReviewInfo:
         reviews = [
             ReviewInfo(**item)
             for item in items
-            if NEOCITIES_PATH_REVIEW in item["path"]
+            if item["path"].startswith(NEOCITIES_PATH_REVIEW)
             and not item["is_directory"]
             and not "home.html" in item["path"]
         ]
