@@ -18,6 +18,10 @@ https://neocities.org/api
 ** DONE rename directory reviews-new to reviews
 ** DONE set and deploy reviews as the path
 
+* TODO sorting ratings
+- clicking rating shows games with that score
+- design for this?
+
 * TODO delete files in app
 clean up home page conveniently
 
