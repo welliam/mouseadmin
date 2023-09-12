@@ -11,11 +11,18 @@
       media="all"
     />
     <script defer>
-      window.onload = () => {
-        Array.from(document.querySelectorAll(".rating-filter")).forEach(filter =>
-          filter.onclick = () => doFilter(filter.dataset["rating"])
-        );
-      };
+      function unFilter(rating) {
+        Array.from(document.querySelectorAll("#games a")).forEach(game => {
+          if (Math.floor(game.dataset["rating"]) !== Math.floor(rating)) {
+            const title = game.innerHTML.trim();
+            document.getElementById(`game-list-letter-label-${title[0].toUpperCase()}`).style.display =
+              'block';
+            game.style.display = 'block';
+          }
+        });
+        document.getElementById("game-list-label").innerHTML = `select a game ...`;
+        document.getElementById("reset-filter").style.display = "none";
+      }
       function doFilter(rating) {
         Array.from(document.querySelectorAll("#games div")).forEach(div => {
             div.style.display = 'none';
@@ -29,9 +36,16 @@
               'block';
             game.style.display = 'block';
           }
-
         });
+        document.getElementById("game-list-label").innerHTML = `select a game (${rating})`;
+        document.getElementById("reset-filter").style.display = "block";
       }
+      window.onload = () => {
+        Array.from(document.querySelectorAll(".rating-filter")).forEach(filter =>
+          filter.onclick = () => doFilter(filter.dataset["rating"])
+        );
+        document.getElementById("reset-filter").onclick = unFilter;
+      };
     </script>
   </head>
   <body>
@@ -59,9 +73,12 @@
       essentially a perfect experience :
       <a class="rating-filter" href="#" data-rating="5"><font color="#aab3e8">★★★★★</font></a>
       <p>total games reviewed: <b>{{ game_review_count }}</b></p>
+      <p>
+        <a id="reset-filter" href="#" style="display: none">(reset filter)</a>
+      </p>
 
       <div class="dropdown">
-        <button class="dropbtn">select a game ...</button>
+        <button class="dropbtn" id="game-list-label">select a game ...</button>
         <div id="games" class="dropdown-content">
           {% for letter, reviews in reviews_by_first_letter %}
             <div id="game-list-letter-label-{{ letter }}">-- {{ letter }} --</div>
