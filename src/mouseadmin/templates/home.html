@@ -24,6 +24,9 @@
           if (Math.floor(game.dataset["rating"]) !== Math.floor(rating)) {
             game.style.display = 'none';
           } else {
+            const title = game.innerHTML.trim();
+            document.getElementById(`game-list-letter-label-${title[0].toUpperCase()}`).style.display =
+              'block';
             game.style.display = 'block';
           }
 
@@ -61,7 +64,7 @@
         <button class="dropbtn">select a game ...</button>
         <div id="games" class="dropdown-content">
           {% for letter, reviews in reviews_by_first_letter %}
-            <div>-- {{ letter }} --</div>
+            <div id="game-list-letter-label-{{ letter }}">-- {{ letter }} --</div>
             {% for review in reviews %}
               <a href="{{ review.neocities_path }}" data-rating="{{ review.rating }}">
                 {{ review.title }} ({{ review.rating }})
