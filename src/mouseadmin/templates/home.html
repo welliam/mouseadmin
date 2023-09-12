@@ -11,7 +11,7 @@
       media="all"
     />
     <script defer>
-      document.onload = () => {
+      window.onload = () => {
         Array.from(document.querySelectorAll(".rating-filter")).forEach(filter =>
           filter.onclick = () => doFilter(filter.dataset["rating"])
         );
