@@ -11,9 +11,11 @@
       media="all"
     />
     <script defer>
-      Array.from(document.querySelectorAll(".rating-filter")).forEach(filter =>
-        filter.onclick = () => doFilter(filter.dataset["rating"])
-      );
+      document.onload = () => {
+        Array.from(document.querySelectorAll(".rating-filter")).forEach(filter =>
+          filter.onclick = () => doFilter(filter.dataset["rating"])
+        );
+      };
       function doFilter(rating) {
         Array.from(document.querySelectorAll("#games div")).forEach(div => {
             div.style.display = 'none';
