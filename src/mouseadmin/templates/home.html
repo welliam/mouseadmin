@@ -21,7 +21,10 @@
         Array.from(document.querySelectorAll("#games a")).forEach(game => {
           if (Math.floor(game.dataset["rating"]) !== Math.floor(rating)) {
             game.style.display = 'none';
+          } else {
+            game.style.display = 'initial';
           }
+
         });
       }
     </script>
