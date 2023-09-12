@@ -10,6 +10,21 @@
       type="text/css"
       media="all"
     />
+    <script defer>
+      Array.from(document.querySelectorAll(".rating-filter")).forEach(filter =>
+        filter.onclick = () => doFilter(filter.dataset["rating"])
+      );
+      function doFilter(rating) {
+        Array.from(document.querySelectorAll("#games div")).forEach(div => {
+            div.style.display = 'none';
+        });
+        Array.from(document.querySelectorAll("#games a")).forEach(game => {
+          if (Math.floor(game.dataset["rating"]) !== Math.floor(rating)) {
+            game.style.display = 'none';
+          }
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="header">
@@ -41,7 +56,7 @@
         <button class="dropbtn">select a game ...</button>
         <div id="games" class="dropdown-content">
           {% for letter, reviews in reviews_by_first_letter %}
-            -- {{ letter }} --
+            <div>-- {{ letter }} --</div>
             {% for review in reviews %}
               <a href="{{ review.neocities_path }}" data-rating="{{ review.rating }}">
                 {{ review.title }} ({{ review.rating }})
