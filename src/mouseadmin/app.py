@@ -394,7 +394,7 @@ def edit_review(slug):
 @app.route("/review/home", methods=["GET"])
 def home_preview():
     client = MouseadminNeocitiesClient()
-    most_recent = self.list_full_reviews()[0]
+    most_recent = client.list_full_reviews()[0]
     return render_template(
-        "home.html", **client.fetch_home_context(self.list_full_reviews())
+        "home.html", **client.fetch_home_context(client.list_full_reviews())
     )
