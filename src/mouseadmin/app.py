@@ -398,3 +398,8 @@ def home_preview():
     return render_template(
         "home.html", **client.fetch_home_context(client.list_full_reviews())
     )
+
+
+@app.route("/", methods=["GET"])
+def cms_home():
+    return render_template("index.html")
