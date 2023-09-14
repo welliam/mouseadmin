@@ -1,8 +1,25 @@
 <html>
+  <head>
+    <title>mouseadmin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
+  </head>
   <body>
-    <a href="/review/new">New review</a>
-    {% for item in items %}
-    <li><a href="{{ NEOCITIES_DOMAIN }}{{item.neocities_path}}">{{ item.slug }} ({{ item.date_iso }})</a> - <a href="/review/edit/{{ item.slug }}">Edit</li>
-    {% endfor %}
+    <h1>mouseadmin - game reviews</h1>
+    <p>
+      <a href="/review/new">New review</a>
+    </p>
+    <p>
+      <ul>
+        {% for item in items %}
+        <li>
+          <a href="{{ NEOCITIES_DOMAIN }}{{item.neocities_path}}">
+            {{ item.slug }} ({{ item.date_iso }})
+          </a>
+          -
+          <a href="/review/edit/{{ item.slug }}">Edit</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </p>
   </body>
 </html>

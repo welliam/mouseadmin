@@ -1,13 +1,29 @@
 label {
+  vertical-align: top;
   display: inline-block;
   width: 10rem;
   padding-right: 1rem;
   text-align: right;
 }
 
+body {
+  background-color: #151717;
+  color: #f1e6f7;
+  font-family: Arial;
+}
+
+a {
+  color: #e8b3d5;
+}
+
+input, textarea, button, select {
+  background-color: #151717;
+  color: #f1e6f7;
+}
+
 ul {
   margin: 0;
-  padding: 0;
+  padding: 0 0 0 1em;
 }
 
 li {

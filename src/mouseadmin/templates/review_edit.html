@@ -1,6 +1,8 @@
 <html>
   <head>
-    <title>New review</title>
+    <title>
+      mouseadmin - {% if title %}{{ title }}{% else %}new review{% endif %}
+    </title>
     <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
     <script>
       function appendExtras(value) {
@@ -36,6 +38,9 @@
   </head>
   <body>
     <a href="/review/">Back</a>
+    <h1>
+      mouseadmin - {% if title %}edit {{ title }}{% else %}new review{% endif %}
+    </h1>
     <form id="review-form" method="post">
       <ul>
         <li>
