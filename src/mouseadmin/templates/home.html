@@ -11,34 +11,37 @@
       media="all"
     />
     <script defer>
+      function shouldShowGame(game, rating) {
+        return Math.floor(game.dataset["rating"]) === Math.floor(rating);
+      }
+      function show(element) {
+        element.style.display = 'block';
+      }
+      function hide(element) {
+        element.style.display = 'none';
+      }
       function unFilter(rating) {
         Array.from(document.querySelectorAll("#games a")).forEach(game => {
-          if (Math.floor(game.dataset["rating"]) !== Math.floor(rating)) {
-            const title = game.innerHTML.trim();
-            document.getElementById(`game-list-letter-label-${title[0].toUpperCase()}`).style.display =
-              'block';
-            game.style.display = 'block';
-          }
+          const title = game.innerHTML.trim();
+          show(document.getElementById(`game-list-letter-label-${title[0].toUpperCase()}`));
+          show(game);
         });
         document.getElementById("game-list-label").innerHTML = `select a game ...`;
-        document.getElementById("reset-filter").style.display = "none";
+        hide(document.getElementById("reset-filter"));
       }
       function doFilter(rating) {
-        Array.from(document.querySelectorAll("#games div")).forEach(div => {
-            div.style.display = 'none';
-        });
+        Array.from(document.querySelectorAll("#games div")).forEach(hide);
         Array.from(document.querySelectorAll("#games a")).forEach(game => {
-          if (Math.floor(game.dataset["rating"]) !== Math.floor(rating)) {
-            game.style.display = 'none';
+          if (!shouldShowGame(game, rating)) {
+            hide(game);
           } else {
             const title = game.innerHTML.trim();
-            document.getElementById(`game-list-letter-label-${title[0].toUpperCase()}`).style.display =
-              'block';
-            game.style.display = 'block';
+            show(game);
+            show(document.getElementById(`game-list-letter-label-${title[0].toUpperCase()}`))
           }
         });
         document.getElementById("game-list-label").innerHTML = `select a game (${rating})`;
-        document.getElementById("reset-filter").style.display = "block";
+        show(document.getElementById("reset-filter"));
       }
       window.onload = () => {
         Array.from(document.querySelectorAll(".rating-filter")).forEach(filter =>
