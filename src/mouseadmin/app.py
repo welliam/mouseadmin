@@ -391,6 +391,35 @@ def edit_review(slug):
         return redirect("/review")
 
 
+@app.route("/review/refresh-all", methods=["POST"])
+def refresh_all():
+    client = MouseadminNeocitiesClient()
+    reviews = sorted(
+        [
+            review
+            for review in client.list_full_reviews()
+        ],
+        key=lambda review: review.date,
+        reverse=True,
+    )
+    reviews_dict = {
+        review.neocities_path: render_template(
+            "review.html",
+            **review.review_template_context(),
+        )
+        for review in reviews
+    }
+    client.upload_strings(
+        {
+            **reviews_dict,
+            NEOCITIES_PATH_REVIEW_HOME: render_template(
+                "home.html", **client.fetch_home_context(reviews)
+            ),
+        }
+    )
+    return redirect("/review")
+
+
 @app.route("/review/home", methods=["GET"])
 def home_preview():
     client = MouseadminNeocitiesClient()
