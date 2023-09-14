@@ -12,10 +12,7 @@
       <ul>
         {% for item in items %}
         <li>
-          <a href="{{ NEOCITIES_DOMAIN }}{{item.neocities_path}}">
-            {{ item.slug }} ({{ item.date_iso }})
-          </a>
-          -
+          <a href="{{ NEOCITIES_DOMAIN }}{{item.neocities_path}}">{{ item.title }} ({{ item.date_iso }})</a> -
           <a href="/review/edit/{{ item.slug }}">Edit</a>
         </li>
         {% endfor %}
