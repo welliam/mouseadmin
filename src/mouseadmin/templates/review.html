@@ -22,6 +22,7 @@
       data-method="{{ method }}"
       data-date="{{ date_iso }}"
       data-art-url="{{ art_url }}"
+      data-emulated="{{ emulated }}"
     >
       <div id="game-info">
         <div style="float: right">
@@ -33,7 +34,7 @@
         <h2>{{ developer }}</h2>
         <h3 class="rating">{{ rating_stars }}<br />({{rating}})</h3>
         <h4>
-          platform: <b>{{ platform }}</b><br />
+          platform: <b>{{ platform }}{% if emulated %} ( emulated ){% endif %}</b><br />
           completion: <b>{{ completion }}</b><br />
           method: <b>{{ method }}</b>
         </h4>

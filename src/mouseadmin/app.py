@@ -42,6 +42,7 @@ class FullReview:
     review_html: str
     recommendation_html: str
     extra_content_html: str
+    emulated: bool
 
     @classmethod
     def empty(cls):
@@ -57,6 +58,7 @@ class FullReview:
             review_html="",
             recommendation_html="",
             extra_content_html="",
+            emulated=False,
         )
 
     @property
@@ -65,6 +67,7 @@ class FullReview:
 
     @classmethod
     def new(cls, date: date, title: str, **kwargs):
+        kwargs["emulated"] = kwargs.get("emulated", False)
         return cls(
             date=date,
             title=title,
@@ -94,6 +97,7 @@ class FullReview:
             review_html=cls._parse_html(soup, "game-review-content"),
             recommendation_html=cls._parse_html(soup, "game-rec-answer"),
             extra_content_html=cls._parse_html(soup, "extras"),
+            emulated=house.get("data-emulated") == "on",
         )
 
     @property
@@ -131,6 +135,7 @@ class FullReview:
             review_html=self.review_html,
             recommendation_html=self.recommendation_html,
             extra_content_html=self.extra_content_html.strip(),
+            emulated=self.emulated,
             rating_stars=(
                 "★" * int(self.rating) + ("☆" if self.rating - int(self.rating) else "")
             )
