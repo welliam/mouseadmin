@@ -73,15 +73,41 @@
         </li>
         <li>
           <label for="platform"> Platform</label>
-          <input name="platform" id="platform" value="{{ platform }}" />
+          <select name="platform" id="platform">
+            <option value="PC" {% if platform == "PC" %}selected{% endif %}>PC</option>
+            <option value="PSX" {% if platform == "PSX" %}selected{% endif %}>PSX</option>
+            <option value="PS2" {% if platform == "PS2" %}selected{% endif %}>PS2</option>
+            <option value="PS3" {% if platform == "PS3" %}selected{% endif %}>PS3</option>
+            <option value="PS4" {% if platform == "PS4" %}selected{% endif %}>PS4</option>
+            <option value="xbox" {% if platform == "xbox" %}selected{% endif %}>xbox</option>
+            <option value="xbox 360" {% if platform == "xbox 360" %}selected{% endif %}>xbox 360</option>
+            <option value="NES" {% if platform == "NES" %}selected{% endif %}>NES</option>
+            <option value="SNES" {% if platform == "SNES" %}selected{% endif %}>SNES</option>
+            <option value="N64" {% if platform == "N64" %}selected{% endif %}>N64</option>
+            <option value="GCN" {% if platform == "GCN" %}selected{% endif %}>GCN</option>
+            <option value="wii" {% if platform == "wii" %}selected{% endif %}>wii</option>
+            <option value="wii u" {% if platform == "wii" %}selected{% endif %} u>wii u</option>
+            <option value="switch" {% if platform == "switch" %}selected{% endif %}>switch</option>
+            <option value="gameboy" {% if platform == "gameboy" %}selected{% endif %}>gameboy</option>
+            <option value="GBC" {% if platform == "GBC" %}selected{% endif %}>GBC</option>
+            <option value="GBA" {% if platform == "GBA" %}selected{% endif %}>GBA</option>
+            <option value="DS" {% if platform == "DS" %}selected{% endif %}>DS</option>
+            <option value="3DS" {% if platform == "3DS" %}selected{% endif %}>3DS</option>
+          </select>
         </li>
         <li>
           <label for="completion"> Completion</label>
-          <input name="completion" id="completion" value="{{ completion }}" />
+          <select name="completion" id="completion">
+            <option value="full" {% if completion == "full" %}selected{% endif %}>full</option>
+            <option value="partial" {% if completion == "partial" %}selected{% endif %}>partial</option>
+          </select>
         </li>
         <li>
           <label for="method"> Method</label>
-          <input name="method" id="method" value="{{ method }}" />
+          <select name="method" id="method">
+            <option value="played" {% if method == "played" %}selected{% endif %}>played</option>
+            <option value="watched" {% if method == "watched" %}selected{% endif %}>watched</option>
+          </select>
         </li>
         <li>
           <label for="date">Date</label>
