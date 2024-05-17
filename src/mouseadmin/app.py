@@ -28,6 +28,8 @@ NEOCITIES_DOMAIN = os.getenv("NEOCITIES_DOMAIN", "https://fern.neocities.org")
 
 API_KEY = os.getenv("MOUSEADMIN_SITE_API_KEY")
 
+NON_REVIEW_PAGES = ["home.html", "faq.html"]
+
 
 @dataclass
 class FullReview:
@@ -161,7 +163,7 @@ class ReviewInfo:
             if item["path"].startswith(NEOCITIES_PATH_REVIEW)
             and item["path"].endswith(".html")
             and not item["is_directory"]
-            and not "home.html" in item["path"]
+            and not any(non_review in item["path"] for non_review in NON_REVIEW_PAGES)
         ]
         return reviews
 
