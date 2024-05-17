@@ -151,6 +151,7 @@ class ReviewInfo:
     sha1_hash: str
     size: int
     updated_at: str
+    created_at: str
 
     @classmethod
     def parse_reviews(cls, items) -> list["ReviewInfo"]:
