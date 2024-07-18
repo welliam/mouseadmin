@@ -38,14 +38,14 @@
       window.onload = () => {
 	  if (window.location.pathname === '/review/new/') {
 	      const inputs = ["title", "developer", "rating", "platform", "emulated", "completion", "method", "emulated", "completion", "method", "date", "art_url", "review_html", "recommendation_html", "extra_content_html"];
-	      const storedForm = JSON.parse(localStorage["new-review"] || "{}");
+	      const storedForm = () => JSON.parse(localStorage["new-review"] || "{}");
 	      inputs.forEach(input => {
-	          if (storedForm[input]) {
-	      	      document.getElementById(input).value = storedForm[input];
+	          if (storedForm()[input]) {
+	      	      document.getElementById(input).value = storedForm()[input];
 	          }
 	          document.getElementById(input).onchange = event => {
 	      	      localStorage["new-review"] = JSON.stringify({
-	      		  ...storedForm,
+	      		  ...storedForm(),
 	      		  [input]: event.target.value,
 	      	      });
 	          }
