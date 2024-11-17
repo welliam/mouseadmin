@@ -1,109 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>mouseadmin</title>
+    <title>mouseadmin - {{ template.name }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
-    <script>
-      function addField() {
-	  const node = document.getElementById("field").cloneNode(true);
-	  node.id = "";
-	  node.classList.remove("hidden");
-	  document.querySelector("#new-field").before(node);
-      }
-      {% if not template %}
-        window.onload = () => addField();
-      {% endif %}
-    </script>
   </head>
   <body>
     <header>
-      <h1>new template</h1>
+      <h1>{{ template.name }}</h1>
       <a href="/templates">Back</a>
     </header>
-    <div class="hidden fieldinput" id="field">
-      <ul>
-	<li>
-	  <label for="field_name">Field name</label>
-	  <input name="field_name" />
-	</li>
-	<li>
-	  <label for="field_type">
-	    Field type
-	  </label>
-	  <select name="field_type" id="field_type">
-	    <option value="text">text</option>
-	    <option value="html">html</option>
-	    <option value="url">url</option>
-	    <option value="image">image</option>
-	  </select>
-	</li>
-      </ul>
-    </div>
-    <form
-      action="{% if template %}/templates/{{ template.id}}/update{% else %}/templates/new{% endif %}"
-      method="post"
-    >
-      <input type="submit" value="Submit" />
-      <ul id="initial_inputs">
-	<li>
-	  <label for="template_name">Template name</label>
-	  <input name="template_name" value="{{ template.name }}" />
-	</li>
-	<li>
-	  <label for="entry_path_template">Entry path template</label>
-	  <input name="entry_path_template" value="{{ template.entry_path_template }}" />
-	</li>
-	<li>
-	  <label for="neocities_path">Neocities path</label>
-	  <input name="neocities_path" value="{{ template.neocities_path }}" />
-	</li>
-	<li>
-	  <label for="index_template">Index template</label>
-	  <textarea style="width:800px; height:500px;" name="index_template">{{ template.index_template }}</textarea>
-	</li>
-	<li>
-	  <label for="entry_template">Entry template</label>
-	  <textarea style="width:800px; height:500px;" name="entry_template">{{ template.entry_template }}</textarea>
-	</li>
-      </ul>
-      <ul>
-	{% if template %}
-	  {% for field in fields %}
-	    <li>
-	      <label for="field_name">Field name</label>
-	      <input name="field_name" value="{{ field.field_name }}" />
-	    </li>
-	    <li>
-	      <label for="field_type">
-	        Field type
-	      </label>
-	      <select name="field_type" id="field_type" value="{{ field.field_type }}">
-	        <option value="text">text</option>
-	        <option value="html">html</option>
-	        <option value="url">url</option>
-	        <option value="image">image</option>
-	      </select>
-	    </li>
-	  {% endfor %}
-	{% else %}
-	  <li>
-	    <label for="field_name">Field name</label>
-	    <input name="field_name" />
-	  </li>
-	  <li>
-	    <label for="field_type">
-	      Field type
-	    </label>
-	    <select name="field_type" id="field_type">
-	      <option value="text">text</option>
-	      <option value="html">html</option>
-	      <option value="url">url</option>
-	      <option value="image">image</option>
-	    </select>
-	  </li>
-	{% endif %}
-      </ul>
-      <button type="button" id="new-field" class="ml" onClick="addField()">+ new field</button>
-    </form>
+    <ul>
+      <li><a href="/templates/{{ template.id }}/edit">Edit template</a></li>
+      <li><a href="/templates/{{ template.id }}/entry/new">New entry</a></li>
+    </ul>
   </body>
 </html>

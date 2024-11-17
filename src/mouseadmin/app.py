@@ -158,7 +158,7 @@ class Dummy:
 @app.route("/templates/new", methods=["GET", "POST"])
 def new_template():
     if request.method == "GET":
-        return render_template("template.html", template=None)
+        return render_template("edit_template.html", template=None)
     else:
         db = get_db()
         template_name = request.form["template_name"]
@@ -223,12 +223,47 @@ def templates_list():
     return render_template("templates_list.html", templates=templates)
 
 
+@app.route("/templates/<int:template_id>/edit", methods=["GET"])
+def template_edit(template_id):
+    db = get_db()
+    template = db.execute("SELECT * FROM Template where id=?", str(template_id)).fetchone()
+    fields = db.execute("SELECT * FROM TemplateField where template_id=?", str(template_id)).fetchall()
+    return render_template("edit_template.html", template=template, fields=fields)
+
+
 @app.route("/templates/<int:template_id>", methods=["GET"])
 def template(template_id):
     db = get_db()
     template = db.execute("SELECT * FROM Template where id=?", str(template_id)).fetchone()
     fields = db.execute("SELECT * FROM TemplateField where template_id=?", str(template_id)).fetchall()
     return render_template("template.html", template=template, fields=fields)
+
+
+def field_html(field, value=None):
+    if field["field_type"] == "text":
+        return f'''
+        <li>
+          <label for="{field['field_name']}">{field['field_name']}</label>
+          <input type="text" name="{field['field_name']}" />
+        </li>
+        '''
+    if field["field_type"] == "html":
+        return f'''
+        <li>
+          <label for="{field['field_name']}">{field['field_name']}</label>
+          <textarea type="text" name="{field['field_name']}"></textarea>
+        </li>
+        '''
+    raise ValueError(f"Invalid field type {field['field_type']}")
+
+
+@app.route("/templates/<int:template_id>/entry/new", methods=["GET"])
+def new_template_entry(template_id):
+    db = get_db()
+    template = db.execute("SELECT * FROM Template where id=?", str(template_id)).fetchone()
+    fields = db.execute("SELECT * FROM TemplateField where template_id=?", str(template_id)).fetchall()
+    fields_html = [field_html(field) for field in fields]
+    return render_template("edit_entry.html", template=template, fields=fields, fields_html=fields_html)
 
 
 @app.route("/", methods=["GET"])

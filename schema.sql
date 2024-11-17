@@ -22,7 +22,9 @@ create table TemplateField (
 create table TemplateEntry (
   id integer primary key,
   timestamp datetime default current_timestamp,
-  last_updated datetime
+  last_updated datetime,
+  template_id integer,
+  foreign key (template_id) references Template(id)
 );
 
 create table TemplateFieldValue (

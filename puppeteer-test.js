@@ -1,71 +1,157 @@
 #! /usr/bin/env node
 const puppeteer = require('puppeteer');
+const { spawn } = require('child_process');
+
+function startShellCommand(command, args = [], envVars = {}) {
+    const env = { ...process.env, ...envVars };
+
+    const child = spawn(command, args, { shell: true, env });
+
+    let stdoutData = '';
+    let stderrData = '';
+
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => {
+        stdoutData += chunk;
+    });
+
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', (chunk) => {
+        stderrData += chunk;
+    });
+
+    return {
+        // Methods to retrieve the captured data
+        getStdoutData: () => stdoutData,
+        getStderrData: () => stderrData,
+
+        // Pass data to the command's stdin
+        writeToStdin: (data) => {
+            if (!child.stdin.writable) {
+                throw new Error(
+                    'Cannot write to stdin: Stream is not writable'
+                );
+            }
+            child.stdin.write(data);
+        },
+
+        kill: () => {
+            child.kill();
+        }
+    };
+}
 
 (async () => {
-  const browser = await puppeteer.launch({ headless: false });
-  const page = await browser.newPage();
+    const server = startShellCommand(
+        './env/bin/flask', // Command
+        ['run', '--debug', '--host', '0.0.0.0', '--port', '5555'],
+        {
+            MOUSEADMIN_DB: 'testdb.db',
+            FLASK_APP: 'src/mouseadmin/app.py'
+        }
+    );
 
-  // Navigate to your page
-  await page.goto('http://localhost:5555/templates/new'); // Replace with the actual URL where the form is hosted
+    new Promise((resolve) => setTimeout(resolve, 100));
 
-  // Fill out the initial inputs
-  await page.type('input[name="template_name"]', 'Example Template');
-  await page.type('input[name="entry_path_template"]', '/example/path');
-  await page.type('input[name="neocities_path"]', '/neocities/example');
+    /*************************
+     * CREATE TEMPLATE
+     *************************/
 
-  // Add a new field
-  await page.click('#new-field');
+    const browser = await puppeteer.launch({ headless: false });
+    const page = await browser.newPage();
 
-  // Fill out the new field's inputs
-  const fieldSelector = '.fieldinput:not(.hidden)';
-  await page.type(`${fieldSelector} input[name="field_name"]`, 'Example Field Name');
-  await page.select(`${fieldSelector} select[name="field_type"]`, 'text');
+    // Navigate to your page
+    await page.goto('http://localhost:5555/templates/new');
 
-  // Fill out the text areas
-  await page.type('textarea[name="index_template"]', '<h1>Index Template Content</h1>');
-  await page.type('textarea[name="entry_template"]', '<p>Entry Template Content</p>');
+    // Fill out the initial inputs
+    await page.type('input[name="template_name"]', 'Example Template');
+    await page.type('input[name="entry_path_template"]', '/example/path');
+    await page.type('input[name="neocities_path"]', '/neocities/example');
 
-  // Submit the form
-  await page.click('input[type="submit"]');
+    // Add a new field
+    await page.click('#new-field');
 
-  // Wait for the form submission to complete (you can add navigation or specific checks here if needed)
-  await page.waitForNavigation();
+    // Fill out the new field's inputs
+    const fieldSelector = '.fieldinput:not(.hidden)';
+    await page.type(`${fieldSelector} input[name="field_name"]`, 'myfield');
+    await page.select(`${fieldSelector} select[name="field_type"]`, 'text');
 
-  const exampleTemplateName = 'Example Template';
-  const pageContent = await page.content();
-  if (!pageContent.includes(exampleTemplateName)) {
-    console.error(`Text "${exampleTemplateName}" not found on the page.`);
-  }
+    // Fill out the text areas
+    await page.type(
+        'textarea[name="index_template"]',
+        '<h1>{{ myfield }}</h1>'
+    );
+    await page.type('textarea[name="entry_template"]', '<p>{{ myfield }}</p>');
 
-  /*************************
-   * UPDATE TEMPLATE
-   *************************/
+    // Submit the form
+    await page.click('input[type="submit"]');
 
-  // Click the template name "Example Template"
-  const linkClicked = await page.evaluate(() => {
-      const link = Array.from(document.querySelectorAll('a')).find(a => a.textContent.trim() === 'Example Template');
-      link.click();
-  });
+    // Wait for the form submission to complete (you can add navigation or specific checks here if needed)
+    await page.waitForNavigation();
 
-  // Wait for navigation to the update form
-  await page.waitForNavigation();
+    const exampleTemplateName = 'Example Template';
+    const pageContent = await page.content();
+    if (!pageContent.includes(exampleTemplateName)) {
+        throw new Error(`Text "${exampleTemplateName}" not found on the page.`);
+    }
 
-  // Clear the template name field
-  await page.waitForSelector('input[name="templateName"]'); // Adjust to the actual selector
-  await page.evaluate(() => {
-      document.querySelector('input[name="templateName"]').value = '';
-  });
+    /*************************
+     * UPDATE TEMPLATE
+     *************************/
 
-  const newTemplateName = 'New Template Name';
-  await page.type('input[name="templateName"]', newTemplateName);
+    // Click the template name "Example Template"
+    await page.evaluate(() => {
+        const link = Array.from(document.querySelectorAll('a')).find(
+            (a) => a.textContent.trim() === 'Example Template'
+        );
+        link.click();
+    });
 
-  await page.click('button[type="submit"]'); // Adjust to the actual selector
+    await page.waitForNavigation();
 
-  await page.waitForNavigation();
+    // Click "edit template"
+    await page.evaluate(() => {
+        const link = Array.from(document.querySelectorAll('a')).find(
+            (a) => a.textContent.trim() === 'Edit template'
+        );
+        link.click();
+    });
 
-  if (!await page.content().includes(newTemplateName)) {
-    console.error(`Text "${newTemplateName}" not found on the page.`);
-  }
+    // Wait for navigation to the update form
+    await page.waitForNavigation();
 
-  await browser.close();
+    // Clear the template name field
+    await page.waitForSelector('input[name="template_name"]'); // Adjust to the actual selector
+    await page.evaluate(() => {
+        document.querySelector('input[name="template_name"]').value = '';
+    });
+
+    const newTemplateName = 'New Template Name';
+    await page.type('input[name="template_name"]', newTemplateName);
+
+    await page.click('input[type="submit"]');
+
+    await page.waitForNavigation();
+
+    if (!(await page.content()).includes(newTemplateName)) {
+        throw new Error(`Text "${newTemplateName}" not found on the page.`);
+    }
+
+    /*************************
+     * CREATE ENTRY
+     *************************/
+
+    await page.evaluate(() => {
+        const link = Array.from(document.querySelectorAll('a')).find(
+            (a) => a.textContent.trim() === 'New entry'
+        );
+        link.click();
+    });
+
+    await page.waitForNavigation();
+
+    await page.type('input[name="myinput"]', "this is some test text");
+
+    server.kill();
+    await browser.close();
 })();

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>mouseadmin - {{ template.name }} entry</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
+  </head>
+  <body>
+    <header>
+      <h1>mouseadmin - {{ template.name }} entry</h1>
+      <a href="/templates">Back</a>
+    </header>
+    <form>
+      <ul>
+        {% for field_html in fields_html %}
+          {{ field_html|safe }}
+        {% endfor %}
+      </ul>
+      <button formtarget="_blank" id="preview-button" formaction="/templates/{{ template.id }}/new-entry/preview" type="submit">
+	Preview
+      </button>
+    </form>
+  </body>
+</html>
