@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <title>mouseadmin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
+  </head>
+  <body>
+    <h1>templates</h1>
+    <a href="/templates/new">new</a>
+    <ul>
+      {% for template in templates %}
+      <li>
+	<a href="/templates/{{ template.id }}">{{ template.name }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>

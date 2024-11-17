@@ -3,3 +3,5 @@
 /src/mouseadmin_well.egg-info/
 /src/mouseadmin/__pycache__/
 /build/
+*.db
+/node_modules/

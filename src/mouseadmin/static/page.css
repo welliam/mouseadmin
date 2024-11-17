@@ -6,6 +6,10 @@ label {
   text-align: right;
 }
 
+header {
+    margin-bottom: 2em;
+}
+
 body {
   background-color: #151717;
   color: #f1e6f7;
@@ -29,4 +33,17 @@ ul {
 li {
   list-style: none;
   margin-bottom: 0.5em;
+}
+
+.hidden {
+    display: none;
+}
+
+.fieldinput {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.ml {
+    margin-left: 10em;
 }
