@@ -34,13 +34,13 @@
 	    <option value="text">text</option>
 	    <option value="html">html</option>
 	    <option value="url">url</option>
-	    <option value="image">image</option>
 	  </select>
 	</li>
   	<li>
   	  <label for="field_options">Field options</label>
   	  <input name="field_options" />
   	</li>
+	<button style="margin: 0 0 2em 22.8em" onClick="this.parentElement.remove()">Remove</button>
         <br />
       </ul>
     </div>
@@ -74,6 +74,7 @@
       <ul>
 	{% if template %}
 	  {% for field in fields %}
+	<span>
 	    <li>
 	      <label for="field_name">Field name</label>
 	      <input name="field_name" value="{{ field.field_name }}" />
@@ -82,19 +83,19 @@
 	      <label for="field_type">
 	        Field type
 	      </label>
-	      <select name="field_type" id="field_type" value="{{ field.field_type }}">
-	        <option value="text">text</option>
-	        <option value="select">select</option>
-	        <option value="html">html</option>
-	        <option value="url">url</option>
-	        <option value="image">image</option>
+	      <select name="field_type" id="field_type">
+	        <option value="text" {% if field.field_type == 'text'%}selected{% endif %}>text</option>
+	        <option value="select" {% if field.field_type == 'select' %}selected{% endif %}>select</option>
+	        <option value="html" {% if field.field_type == 'html' %}selected{% endif %}>html</option>
+	        <option value="url" {% if field.field_type == 'url' %}selected{% endif %}>url</option>
 	      </select>
 	    </li>
   	    <li>
   	      <label for="field_options">Field options</label>
   	      <input name="field_options" value="{{ field_options(field) }}" />
   	    </li>
-	    <br />
+	    <button style="margin: 0 0 2em 22.8em" onClick="this.parentElement.remove()">Remove</button>
+	    </span>
 	  {% endfor %}
 	{% else %}
 	  <li>
@@ -110,13 +111,13 @@
 	      <option value="select">select</option>
 	      <option value="html">html</option>
 	      <option value="url">url</option>
-	      <option value="image">image</option>
 	    </select>
 	  </li>
 	  <li>
 	    <label for="field_options">Field options</label>
 	    <input name="field_options" />
 	  </li>
+	  <button style="margin: 0 0 2em 22.8em" onClick="this.parentElement.remove()">Remove</button>
           <br />
 	{% endif %}
       </ul>

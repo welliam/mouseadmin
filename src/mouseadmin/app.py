@@ -122,6 +122,8 @@ class CachedNeocitiesClient:
 
 
 def field_options(field):
+    if not field["field_options"]:
+        return ""
     return ', '.join(json.loads(field["field_options"]))
 
 
@@ -265,13 +267,16 @@ def field_html(field, value=None):
 
 
 
-@app.route("/templates/<int:template_id>/entry/new", methods=["GET"])
+@app.route("/templates/<int:template_id>/entry/new", methods=["GET", "POST"])
 def new_template_entry(template_id):
     db = get_db()
-    template = db.execute("SELECT * FROM Template where id=?", str(template_id)).fetchone()
-    fields = db.execute("SELECT * FROM TemplateField where template_id=?", str(template_id)).fetchall()
-    fields_html = [field_html(field) for field in fields]
-    return render_template("edit_entry.html", template=template, fields=fields, fields_html=fields_html)
+    if request.method == "GET":
+        template = db.execute("SELECT * FROM Template where id=?", str(template_id)).fetchone()
+        fields = db.execute("SELECT * FROM TemplateField where template_id=?", str(template_id)).fetchall()
+        fields_html = [field_html(field) for field in fields]
+        return render_template("edit_entry.html", template=template, fields=fields, fields_html=fields_html)
+    # if request.method == "POST":
+    #     db.execute("insert into TemplateEntry ",
 
 
 @app.route("/templates/<int:template_id>/entry/preview", methods=["POST"])

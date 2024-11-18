@@ -76,6 +76,12 @@ function startShellCommand(command, args = [], envVars = {}) {
     await page.type(`${fieldSelector} input[name="field_name"]`, 'myfield');
     await page.select(`${fieldSelector} select[name="field_type"]`, 'text');
 
+    // Add a select field
+    await page.click('#new-field');
+    const last = elements => elements[elements.length - 1];
+    await last(await page.$$(`${fieldSelector} input[name="field_name"]`)).type("myhtml");
+    await last(await page.$$(`${fieldSelector} select[name="field_type"]`)).select("html");
+
     // Fill out the text areas
     await page.type(
         'textarea[name="index_template"]',
@@ -160,6 +166,7 @@ function startShellCommand(command, args = [], envVars = {}) {
     await page.waitForNavigation();
 
     await page.type('input[name="myfield"]', "this is some test text");
+    await page.type('input[name="myhtml"]', "<b>this is some html</b>");
 
     await page.click('button[id="preview-button"]');
 
@@ -167,6 +174,10 @@ function startShellCommand(command, args = [], envVars = {}) {
     const previewPage = (await browser.pages())[2]
     if (!(await previewPage.content()).includes("this is some test text")) {
 	throw new Error("Preview page does not contain variable");
+    }
+
+    if (!(await previewPage.$$("textarea")).name == "myhtml") {
+	throw new Error("Preview page does not contain html input");
     }
     await previewPage.close();
 
