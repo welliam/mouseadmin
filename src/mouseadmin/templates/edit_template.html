@@ -37,6 +37,11 @@
 	    <option value="image">image</option>
 	  </select>
 	</li>
+  	<li>
+  	  <label for="field_options">Field options</label>
+  	  <input name="field_options" />
+  	</li>
+        <br />
       </ul>
     </div>
     <form
@@ -79,11 +84,17 @@
 	      </label>
 	      <select name="field_type" id="field_type" value="{{ field.field_type }}">
 	        <option value="text">text</option>
+	        <option value="select">select</option>
 	        <option value="html">html</option>
 	        <option value="url">url</option>
 	        <option value="image">image</option>
 	      </select>
 	    </li>
+  	    <li>
+  	      <label for="field_options">Field options</label>
+  	      <input name="field_options" value="{{ field_options(field) }}" />
+  	    </li>
+	    <br />
 	  {% endfor %}
 	{% else %}
 	  <li>
@@ -96,11 +107,17 @@
 	    </label>
 	    <select name="field_type" id="field_type">
 	      <option value="text">text</option>
+	      <option value="select">select</option>
 	      <option value="html">html</option>
 	      <option value="url">url</option>
 	      <option value="image">image</option>
 	    </select>
 	  </li>
+	  <li>
+	    <label for="field_options">Field options</label>
+	    <input name="field_options" />
+	  </li>
+          <br />
 	{% endif %}
       </ul>
       <button type="button" id="new-field" class="ml" onClick="addField()">+ new field</button>

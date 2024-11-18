@@ -9,13 +9,14 @@
       <h1>mouseadmin - {{ template.name }} entry</h1>
       <a href="/templates">Back</a>
     </header>
-    <form>
+    <form method="post">
       <ul>
         {% for field_html in fields_html %}
           {{ field_html|safe }}
         {% endfor %}
       </ul>
-      <button formtarget="_blank" id="preview-button" formaction="/templates/{{ template.id }}/new-entry/preview" type="submit">
+      <input type="submit" value="Submit" />
+      <button formtarget="_blank" id="preview-button" formaction="/templates/{{ template.id }}/entry/preview" type="submit">
 	Preview
       </button>
     </form>

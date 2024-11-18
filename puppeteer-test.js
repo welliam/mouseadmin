@@ -143,6 +143,15 @@ function startShellCommand(command, args = [], envVars = {}) {
 
     await page.evaluate(() => {
         const link = Array.from(document.querySelectorAll('a')).find(
+            (a) => a.textContent.trim() === "New Template Name"
+        );
+        link.click();
+    });
+
+    await page.waitForNavigation();
+
+    await page.evaluate(() => {
+        const link = Array.from(document.querySelectorAll('a')).find(
             (a) => a.textContent.trim() === 'New entry'
         );
         link.click();
@@ -150,8 +159,18 @@ function startShellCommand(command, args = [], envVars = {}) {
 
     await page.waitForNavigation();
 
-    await page.type('input[name="myinput"]', "this is some test text");
+    await page.type('input[name="myfield"]', "this is some test text");
 
+    await page.click('button[id="preview-button"]');
+
+    await (new Promise((resolve) => setTimeout(resolve, 300)));
+    const previewPage = (await browser.pages())[2]
+    if (!(await previewPage.content()).includes("this is some test text")) {
+	throw new Error("Preview page does not contain variable");
+    }
+    await previewPage.close();
+
+    console.log("done! :-)");
     server.kill();
     await browser.close();
 })();

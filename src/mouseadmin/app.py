@@ -10,10 +10,11 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, date, timezone, timedelta
 import os
-from flask import Flask, render_template, request, redirect, g
+from flask import Flask, render_template, request, redirect, g, render_template_string
 from bs4 import BeautifulSoup
 from typing import Optional
 import pathlib
+import json
 
 from mouseadmin import neocities
 
@@ -120,10 +121,8 @@ class CachedNeocitiesClient:
         return fetched, open(f"cache/{path}").read()
 
 
-class Dummy:
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            self.setattr(key, value)
+def field_options(field):
+    return ', '.join(json.loads(field["field_options"]))
 
 
 # @app.route("/review/refresh-all", methods=["POST"])
@@ -175,9 +174,13 @@ def new_template():
             insert into TemplateField(template_id, field_name, field_type, field_options)
             values(?, ?, ?, ?)
         """, [
-            (template_id, field_name, field_type, None)
-            for field_name, field_type in
-            zip(request.form.getlist("field_name"), request.form.getlist("field_type"))
+            (template_id, field_name, field_type, json.dumps(field_options.split(",")))
+            for field_name, field_type, field_options in
+            zip(
+                request.form.getlist("field_name"),
+                request.form.getlist("field_type"),
+                request.form.getlist("field_options")
+            )
         ])
         db.commit()
         return redirect("/templates")
@@ -201,9 +204,13 @@ def update_template(template_id: int):
            insert into TemplateField(template_id, field_name, field_type, field_options)
            values(?, ?, ?, ?)
        """, [
-           (template_id, field_name, field_type, None)
-           for field_name, field_type in
-           zip(request.form.getlist("field_name"), request.form.getlist("field_type"))
+           (template_id, field_name, field_type, json.dumps(field_options.split(",")))
+           for field_name, field_type, field_options in
+            zip(
+                request.form.getlist("field_name"),
+                request.form.getlist("field_type"),
+                request.form.getlist("field_options")
+            )
        ])
     db.commit()
     return redirect("/templates")
@@ -228,7 +235,7 @@ def template_edit(template_id):
     db = get_db()
     template = db.execute("SELECT * FROM Template where id=?", str(template_id)).fetchone()
     fields = db.execute("SELECT * FROM TemplateField where template_id=?", str(template_id)).fetchall()
-    return render_template("edit_template.html", template=template, fields=fields)
+    return render_template("edit_template.html", template=template, fields=fields, field_options=field_options)
 
 
 @app.route("/templates/<int:template_id>", methods=["GET"])
@@ -257,6 +264,7 @@ def field_html(field, value=None):
     raise ValueError(f"Invalid field type {field['field_type']}")
 
 
+
 @app.route("/templates/<int:template_id>/entry/new", methods=["GET"])
 def new_template_entry(template_id):
     db = get_db()
@@ -264,6 +272,15 @@ def new_template_entry(template_id):
     fields = db.execute("SELECT * FROM TemplateField where template_id=?", str(template_id)).fetchall()
     fields_html = [field_html(field) for field in fields]
     return render_template("edit_entry.html", template=template, fields=fields, fields_html=fields_html)
+
+
+@app.route("/templates/<int:template_id>/entry/preview", methods=["POST"])
+def preview_template(template_id):
+    db = get_db()
+    template = db.execute("SELECT * FROM Template where id=?", str(template_id)).fetchone()
+    # fields = db.execute("SELECT * FROM TemplateField where template_id=?", str(template_id)).fetchall()
+    # fields_html = [field_html(field) for field in fields]
+    return render_template_string(template["entry_template"], **request.form)
 
 
 @app.route("/", methods=["GET"])
