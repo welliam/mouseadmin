@@ -216,9 +216,9 @@ def update_template(template_id: int):
     entry_template = request.form["entry_template"]
     cur = db.execute(
         """
-           update Template
-           set name=?, neocities_path=?, entry_path_template=?, entry_template=?, index_template=?
-           where id=?
+           UPDATE Template
+           SET name=?, neocities_path=?, entry_path_template=?, entry_template=?, index_template=?
+           WHERE id=?
     """,
         (
             template_name,
@@ -280,14 +280,8 @@ def template_edit(template_id):
     )
 
 
-def render_entry(template_entry_id):
+def get_template_variables(template_entry_id):
     db = get_db()
-    entry = db.execute(
-        "SELECT * FROM TemplateEntry where template_id=?", str(template_entry_id)
-    ).fetchone()
-    template = db.execute(
-        "SELECT * FROM Template where id=?", str(entry["template_id"])
-    ).fetchone()
     field_values = db.execute(
         """
         SELECT *
@@ -298,10 +292,21 @@ def render_entry(template_entry_id):
     """,
         str(template_entry_id),
     ).fetchall()
-    template_variables = {
+    return {
         field_value["field_name"]: json.loads(field_value["value_json"])
         for field_value in field_values
     }
+
+
+def render_entry(template_entry_id):
+    db = get_db()
+    entry = db.execute(
+        "SELECT * FROM TemplateEntry where template_id=?", str(template_entry_id)
+    ).fetchone()
+    template = db.execute(
+        "SELECT * FROM Template where id=?", str(entry["template_id"])
+    ).fetchone()
+    template_variables = get_template_variables(template_entry_id)
     entry_path = render_template_string(
         template["entry_path_template"], **template_variables
     )
@@ -334,18 +339,19 @@ def template(template_id):
 
 
 def field_html(field, value=None):
+    value = value or ""
     if field["field_type"] == "text":
         return f"""
         <li>
           <label for="{field['field_name']}">{field['field_name']}</label>
-          <input type="text" name="{field['field_name']}" />
+          <input type="text" name="{field['field_name']}" value="{value}" />
         </li>
         """
     if field["field_type"] == "html":
         return f"""
         <li>
           <label for="{field['field_name']}">{field['field_name']}</label>
-          <textarea type="text" name="{field['field_name']}"></textarea>
+          <textarea type="text" name="{field['field_name']}">{value}</textarea>
         </li>
         """
     raise ValueError(f"Invalid field type {field['field_type']}")
@@ -395,6 +401,54 @@ def new_template_entry(template_id):
         )
         db.commit()
         return redirect(f"/templates/{template_id}/entry/{template_entry_id}")
+
+
+@app.route(
+    "/templates/<int:template_id>/entry/<int:template_entry_id>",
+    methods=["GET", "POST"],
+)
+def update_template_entry(template_id, template_entry_id):
+    db = get_db()
+    if request.method == "GET":
+        template = db.execute(
+            "SELECT * FROM Template where id=?", str(template_id)
+        ).fetchone()
+        fields = db.execute(
+            "SELECT * FROM TemplateField where template_id=?", str(template_id)
+        ).fetchall()
+        template_variables = get_template_variables(template_entry_id)
+        fields_html = [
+            field_html(field, template_variables[field["field_name"]])
+            for field in fields
+        ]
+        return render_template(
+            "edit_entry.html", template=template, fields=fields, fields_html=fields_html
+        )
+    if request.method == "POST":
+        fields = db.execute(
+            "SELECT * FROM TemplateField where template_id=?", str(template_id)
+        ).fetchall()
+        field_id_by_name = {field["field_name"]: field["id"] for field in fields}
+        db.execute(
+            "DELETE FROM TemplateFieldValue where template_entry_id=?",
+            str(template_entry_id),
+        )
+        db.executemany(
+            """
+            insert into TemplateFieldValue(template_entry_id, template_field_id, value_json)
+            values(?, ?, ?)
+        """,
+            [
+                (
+                    template_entry_id,
+                    field_id_by_name[field_name],
+                    json.dumps(field_value),
+                )
+                for field_name, field_value in request.form.items()
+            ],
+        )
+        db.commit()
+        return redirect(f"/templates/{template_id}")
 
 
 @app.route("/templates/<int:template_id>/entry/preview", methods=["POST"])
