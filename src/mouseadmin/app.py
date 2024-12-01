@@ -19,7 +19,6 @@ import json
 from mouseadmin import neocities
 
 
-
 app = Flask(__name__)
 
 
@@ -35,6 +34,7 @@ NON_REVIEW_PAGES = ["home.html", "faq.html"]
 
 
 DATABASE = os.getenv("MOUSEADMIN_DB")
+
 
 def get_db():
     db = getattr(g, "_database", None)
@@ -67,6 +67,8 @@ class Template:
 
 
 dataclass
+
+
 class FileInfo:
     is_directory: bool
     path: str
@@ -124,7 +126,7 @@ class CachedNeocitiesClient:
 def field_options(field):
     if not field["field_options"]:
         return ""
-    return ', '.join(json.loads(field["field_options"]))
+    return ", ".join(json.loads(field["field_options"]))
 
 
 # @app.route("/review/refresh-all", methods=["POST"])
@@ -167,23 +169,39 @@ def new_template():
         index_template = request.form["index_template"]
         entry_path_template = request.form["entry_path_template"]
         entry_template = request.form["entry_template"]
-        cur = db.execute("""
+        cur = db.execute(
+            """
             insert into Template(name, neocities_path, entry_path_template, entry_template, index_template)
             values(?, ?, ?, ?, ?)
-        """, (template_name, neocities_path, entry_path_template, entry_template, index_template))
+        """,
+            (
+                template_name,
+                neocities_path,
+                entry_path_template,
+                entry_template,
+                index_template,
+            ),
+        )
         template_id = cur.lastrowid
-        db.executemany("""
+        db.executemany(
+            """
             insert into TemplateField(template_id, field_name, field_type, field_options)
             values(?, ?, ?, ?)
-        """, [
-            (template_id, field_name, field_type, json.dumps(field_options.split(",")))
-            for field_name, field_type, field_options in
-            zip(
-                request.form.getlist("field_name"),
-                request.form.getlist("field_type"),
-                request.form.getlist("field_options")
-            )
-        ])
+        """,
+            [
+                (
+                    template_id,
+                    field_name,
+                    field_type,
+                    json.dumps(field_options.split(",")),
+                )
+                for field_name, field_type, field_options in zip(
+                    request.form.getlist("field_name"),
+                    request.form.getlist("field_type"),
+                    request.form.getlist("field_options"),
+                )
+            ],
+        )
         db.commit()
         return redirect("/templates")
 
@@ -196,26 +214,39 @@ def update_template(template_id: int):
     index_template = request.form["index_template"]
     entry_path_template = request.form["entry_path_template"]
     entry_template = request.form["entry_template"]
-    cur = db.execute("""
+    cur = db.execute(
+        """
            update Template
            set name=?, neocities_path=?, entry_path_template=?, entry_template=?, index_template=?
            where id=?
-    """, (template_name, neocities_path, entry_path_template, entry_template, index_template, template_id))
+    """,
+        (
+            template_name,
+            neocities_path,
+            entry_path_template,
+            entry_template,
+            index_template,
+            template_id,
+        ),
+    )
     db.execute("delete from TemplateField where template_id=?", template_id)
-    db.executemany("""
+    db.executemany(
+        """
            insert into TemplateField(template_id, field_name, field_type, field_options)
            values(?, ?, ?, ?)
-       """, [
-           (template_id, field_name, field_type, json.dumps(field_options.split(",")))
-           for field_name, field_type, field_options in
-            zip(
+       """,
+        [
+            (template_id, field_name, field_type, json.dumps(field_options.split(",")))
+            for field_name, field_type, field_options in zip(
                 request.form.getlist("field_name"),
                 request.form.getlist("field_type"),
-                request.form.getlist("field_options")
+                request.form.getlist("field_options"),
             )
-       ])
+        ],
+    )
     db.commit()
     return redirect("/templates")
+
 
 @app.route("/templates/<template_id>/delete", methods=["POST"])
 def delete_template(template_id: int):
@@ -235,56 +266,143 @@ def templates_list():
 @app.route("/templates/<int:template_id>/edit", methods=["GET"])
 def template_edit(template_id):
     db = get_db()
-    template = db.execute("SELECT * FROM Template where id=?", str(template_id)).fetchone()
-    fields = db.execute("SELECT * FROM TemplateField where template_id=?", str(template_id)).fetchall()
-    return render_template("edit_template.html", template=template, fields=fields, field_options=field_options)
+    template = db.execute(
+        "SELECT * FROM Template where id=?", str(template_id)
+    ).fetchone()
+    fields = db.execute(
+        "SELECT * FROM TemplateField where template_id=?", str(template_id)
+    ).fetchall()
+    return render_template(
+        "edit_template.html",
+        template=template,
+        fields=fields,
+        field_options=field_options,
+    )
+
+
+def render_entry(template_entry_id):
+    db = get_db()
+    entry = db.execute(
+        "SELECT * FROM TemplateEntry where template_id=?", str(template_entry_id)
+    ).fetchone()
+    template = db.execute(
+        "SELECT * FROM Template where id=?", str(entry["template_id"])
+    ).fetchone()
+    field_values = db.execute(
+        """
+        SELECT *
+        FROM TemplateFieldValue
+        INNER JOIN TemplateEntry ON TemplateFieldValue.template_entry_id=TemplateEntry.id
+        INNER JOIN TemplateField ON TemplateFieldValue.template_field_id=TemplateField.id
+        WHERE TemplateFieldValue.template_entry_id=?
+    """,
+        str(template_entry_id),
+    ).fetchall()
+    template_variables = {
+        field_value["field_name"]: json.loads(field_value["value_json"])
+        for field_value in field_values
+    }
+    entry_path = render_template_string(
+        template["entry_path_template"], **template_variables
+    )
+    entry_html = render_template_string(
+        template["entry_template"], **template_variables
+    )
+    return dict(entry_path=entry_path, entry_html=entry_html)
 
 
 @app.route("/templates/<int:template_id>", methods=["GET"])
 def template(template_id):
     db = get_db()
-    template = db.execute("SELECT * FROM Template where id=?", str(template_id)).fetchone()
-    fields = db.execute("SELECT * FROM TemplateField where template_id=?", str(template_id)).fetchall()
-    return render_template("template.html", template=template, fields=fields)
+    template = db.execute(
+        "SELECT * FROM Template where id=?", str(template_id)
+    ).fetchone()
+    fields = db.execute(
+        "SELECT * FROM TemplateField where template_id=?", str(template_id)
+    ).fetchall()
+    template_entries = db.execute(
+        "SELECT * FROM TemplateEntry where template_id=?", str(template_id)
+    ).fetchall()
+    return render_template(
+        "template.html",
+        template=template,
+        fields=fields,
+        template_entries=[
+            dict(entry, **render_entry(entry["id"])) for entry in template_entries
+        ],
+    )
 
 
 def field_html(field, value=None):
     if field["field_type"] == "text":
-        return f'''
+        return f"""
         <li>
           <label for="{field['field_name']}">{field['field_name']}</label>
           <input type="text" name="{field['field_name']}" />
         </li>
-        '''
+        """
     if field["field_type"] == "html":
-        return f'''
+        return f"""
         <li>
           <label for="{field['field_name']}">{field['field_name']}</label>
           <textarea type="text" name="{field['field_name']}"></textarea>
         </li>
-        '''
+        """
     raise ValueError(f"Invalid field type {field['field_type']}")
-
 
 
 @app.route("/templates/<int:template_id>/entry/new", methods=["GET", "POST"])
 def new_template_entry(template_id):
     db = get_db()
     if request.method == "GET":
-        template = db.execute("SELECT * FROM Template where id=?", str(template_id)).fetchone()
-        fields = db.execute("SELECT * FROM TemplateField where template_id=?", str(template_id)).fetchall()
+        template = db.execute(
+            "SELECT * FROM Template where id=?", str(template_id)
+        ).fetchone()
+        fields = db.execute(
+            "SELECT * FROM TemplateField where template_id=?", str(template_id)
+        ).fetchall()
         fields_html = [field_html(field) for field in fields]
-        return render_template("edit_entry.html", template=template, fields=fields, fields_html=fields_html)
-    # if request.method == "POST":
-    #     db.execute("insert into TemplateEntry ",
+        return render_template(
+            "edit_entry.html", template=template, fields=fields, fields_html=fields_html
+        )
+    if request.method == "POST":
+        template = db.execute(
+            "SELECT * FROM Template where id=?", str(template_id)
+        ).fetchone()
+        fields = db.execute(
+            "SELECT * FROM TemplateField where template_id=?", str(template_id)
+        ).fetchall()
+        field_id_by_name = {field["field_name"]: field["id"] for field in fields}
+        template_entry_id = db.execute(
+            """
+            INSERT INTO TemplateEntry(last_updated, template_id) values (?, ?)
+        """,
+            (datetime.now(), str(template_id)),
+        ).lastrowid
+        db.executemany(
+            """
+            insert into TemplateFieldValue(template_entry_id, template_field_id, value_json)
+            values(?, ?, ?)
+        """,
+            [
+                (
+                    template_entry_id,
+                    field_id_by_name[field_name],
+                    json.dumps(field_value),
+                )
+                for field_name, field_value in request.form.items()
+            ],
+        )
+        db.commit()
+        return redirect(f"/templates/{template_id}/entry/{template_entry_id}")
 
 
 @app.route("/templates/<int:template_id>/entry/preview", methods=["POST"])
 def preview_template(template_id):
     db = get_db()
-    template = db.execute("SELECT * FROM Template where id=?", str(template_id)).fetchone()
-    # fields = db.execute("SELECT * FROM TemplateField where template_id=?", str(template_id)).fetchall()
-    # fields_html = [field_html(field) for field in fields]
+    template = db.execute(
+        "SELECT * FROM Template where id=?", str(template_id)
+    ).fetchone()
     return render_template_string(template["entry_template"], **request.form)
 
 
