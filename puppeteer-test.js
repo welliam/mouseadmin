@@ -2,6 +2,10 @@
 const puppeteer = require('puppeteer');
 const { spawn } = require('child_process');
 
+
+// wait 10 minutes
+const wait = () => new Promise(resolve => setTimeout(resolve, 10 * 60 * 1000));
+
 function startShellCommand(command, args = [], envVars = {}) {
     const env = { ...process.env, ...envVars };
 
@@ -65,7 +69,7 @@ function startShellCommand(command, args = [], envVars = {}) {
 
     // Fill out the initial inputs
     await page.type('input[name="template_name"]', 'Example Template');
-    await page.type('input[name="entry_path_template"]', '/example/path');
+    await page.type('input[name="entry_path_template"]', '/example/path/{{ myfield }}');
     await page.type('input[name="neocities_path"]', '/neocities/example');
 
     // Add a new field
@@ -165,14 +169,15 @@ function startShellCommand(command, args = [], envVars = {}) {
 
     await page.waitForNavigation();
 
-    await page.type('input[name="myfield"]', "this is some test text");
-    await page.type('input[name="myhtml"]', "<b>this is some html</b>");
+    await page.type('input[name="myfield"]', "test");
+    await page.type('textarea[name="myhtml"]', "<b>this is some html</b>");
 
+    /* OBSERVE PREVIEW */
     await page.click('button[id="preview-button"]');
 
     await (new Promise((resolve) => setTimeout(resolve, 300)));
     const previewPage = (await browser.pages())[2]
-    if (!(await previewPage.content()).includes("this is some test text")) {
+    if (!(await previewPage.content()).includes("test")) {
 	throw new Error("Preview page does not contain variable");
     }
 
@@ -180,6 +185,14 @@ function startShellCommand(command, args = [], envVars = {}) {
 	throw new Error("Preview page does not contain html input");
     }
     await previewPage.close();
+
+    /* SUBMIT */
+    await page.click('input[type="submit"]');
+    await page.waitForNavigation();
+    if (!(await page.$$("li.entry")).innerText == "/example/path/test") {
+	throw new Error("Page does not include newly created entry");
+    }
+    await wait();
 
     console.log("done! :-)");
     server.kill();

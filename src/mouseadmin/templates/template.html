@@ -16,7 +16,7 @@
     <h2>Entries</h2>
     <ul>
       {% for entry in template_entries %}
-        <li><a href="/templates/{{ template.id }}/entry/{{ entry.id }}">{{ entry.entry_path }}</a></li>
+        <li class="entry"><a href="/templates/{{ template.id }}/entry/{{ entry.id }}">{{ entry.entry_path }}</a></li>
       {% endfor %}
     </ul>
   </body>

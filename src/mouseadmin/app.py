@@ -66,9 +66,6 @@ class Template:
     index_jinja: str
 
 
-dataclass
-
-
 class FileInfo:
     is_directory: bool
     path: str
@@ -301,7 +298,7 @@ def get_template_variables(template_entry_id):
 def render_entry(template_entry_id):
     db = get_db()
     entry = db.execute(
-        "SELECT * FROM TemplateEntry where template_id=?", str(template_entry_id)
+        "SELECT * FROM TemplateEntry where id=?", str(template_entry_id)
     ).fetchone()
     template = db.execute(
         "SELECT * FROM Template where id=?", str(entry["template_id"])
@@ -342,17 +339,17 @@ def field_html(field, value=None):
     value = value or ""
     if field["field_type"] == "text":
         return f"""
-        <li>
-          <label for="{field['field_name']}">{field['field_name']}</label>
-          <input type="text" name="{field['field_name']}" value="{value}" />
-        </li>
+            <li>
+              <label for="{field['field_name']}">{field['field_name']}</label>
+              <input type="text" name="{field['field_name']}" value="{value}" />
+            </li>
         """
     if field["field_type"] == "html":
         return f"""
-        <li>
-          <label for="{field['field_name']}">{field['field_name']}</label>
-          <textarea type="text" name="{field['field_name']}">{value}</textarea>
-        </li>
+            <li>
+              <label for="{field['field_name']}">{field['field_name']}</label>
+              <textarea type="text" name="{field['field_name']}">{value}</textarea>
+            </li>
         """
     raise ValueError(f"Invalid field type {field['field_type']}")
 
@@ -400,7 +397,7 @@ def new_template_entry(template_id):
             ],
         )
         db.commit()
-        return redirect(f"/templates/{template_id}/entry/{template_entry_id}")
+        return redirect(f"/templates/{template_id}")
 
 
 @app.route(
