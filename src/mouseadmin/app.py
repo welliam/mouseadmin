@@ -18,28 +18,128 @@ import json
 from slugify import slugify
 from abc import ABC, abstractmethod
 
-from mouseadmin import neocities
+from mouseadmin import neocities, file_client
 
 
 app = Flask(__name__)
-
-
-NEOCITIES_PATH_REVIEW = "reviews/"
-
-NEOCITIES_PATH_REVIEW_HOME = NEOCITIES_PATH_REVIEW + "home.html"
 
 NEOCITIES_DOMAIN = os.getenv("NEOCITIES_DOMAIN", "https://fern.neocities.org")
 
 API_KEY = os.getenv("MOUSEADMIN_SITE_API_KEY")
 
-NON_REVIEW_PAGES = ["home.html", "faq.html"]
-
-
 DATABASE = os.getenv("MOUSEADMIN_DB")
+
+
+def stars(n):
+    n = float(n.strip())
+    return int(n) * '★' + ('' if n.is_integer() else '☆')
+
 
 FUNCTIONS = {
     "slugify": slugify,
+    "stars": stars,
 }
+
+def get_client():
+    return dict(
+        file=file_client.FileClient(),
+        neocities=neocities.NeoCities(api_key=API_KEY)
+    )[os.getenv("NEOCITIES_CLIENT", "file")]
+
+
+def upload_strings(files: dict[str, str]):
+    """
+    files is a dict {filename: string_content}
+    """
+
+    def _temp_file_of(string_content: str):
+        review_file = tempfile.NamedTemporaryFile(mode="w")
+        review_file.write(string_content)
+        review_file.seek(0)
+        return review_file
+
+    file_objects = {
+        neocities_path: _temp_file_of(string_content)
+        for neocities_path, string_content in files.items()
+    }
+    get_client().upload(
+        *(
+            (file.name, neocities_path)
+            for neocities_path, file in file_objects.items()
+        )
+    )
+
+
+def get_template_variables(template_entry_id):
+    db = get_db()
+    field_values = db.execute(
+        """
+        SELECT *
+        FROM TemplateFieldValue
+        INNER JOIN TemplateEntry ON TemplateFieldValue.template_entry_id=TemplateEntry.id
+        INNER JOIN TemplateField ON TemplateFieldValue.template_field_id=TemplateField.id
+        WHERE TemplateFieldValue.template_entry_id=?
+    """,
+        str(template_entry_id),
+    ).fetchall()
+    return {
+        field_value["field_name"]: json.loads(field_value["value_json"])
+        for field_value in field_values
+    }
+
+
+def upload_entries(*, template_entry_id=None, template_id=None):
+    if template_entry_id is None and template_id is None:
+        raise ValueError("Supply one of template_entry_id or template_id")
+
+    db = get_db()
+    template_entry_ids = (
+        [template_entry_id]
+        if template_entry_id is not None
+        else [
+            row["id"]
+            for row
+            in db.execute("SELECT id FROM TemplateEntry where template_id=?", str(template_id)).fetchall()
+        ]
+    )
+    print(template_entry_ids)
+    template_id = template_id or db.execute(
+        "SELECT template_id FROM TemplateEntry where id=?",
+        str(template_entry_id),
+    ).fetchone()["template_id"]
+
+    template = db.execute("SELECT * from Template where id=?", str(template_id)).fetchone()
+
+    entries = [get_template_variables(entry_id) for entry_id in template_entry_ids]
+
+    files = {}
+
+    # create entries
+    for entry in entries:
+        template_parameters = {**FUNCTIONS, **entry}
+        filepath = os.path.join(
+            template["neocities_path"],
+            render_template_string(template["entry_path_template"], **template_parameters)
+        )
+        file_contents = render_template_string(template["entry_template"], **template_parameters)
+        files[filepath] = file_contents
+
+    index_path = os.path.join(
+        template["neocities_path"],
+        render_template_string(template["index_template"], entries=entries, **FUNCTIONS)
+    )
+    index_html = render_template_string(template["index_template"], entries=entries, **FUNCTIONS)
+    files[index_path] = index_html
+
+    upload_strings(files)
+
+
+def get_db():
+    db = getattr(g, "_database", None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+        db.row_factory = sqlite3.Row
+    return db
 
 
 class InputType(ABC):
@@ -50,7 +150,7 @@ class InputType(ABC):
         pass
 
     def from_form_value(self, form_value):
-        return form_value
+        return form_value.strip()
 
     @classmethod
     def from_field_type(cls, field_type):
@@ -89,8 +189,8 @@ class CheckboxInput(InputType):
         checked = 'checked' if value else ''
         return f'<input type="checkbox" name="{name}" {checked} />'
 
-    def from_form_value(self, value):
-        return form_value == "on"
+    def from_form_value(self, form_value):
+        return form_value.strip() == "on"
 
 
 class SelectInput(InputType):
@@ -106,15 +206,7 @@ class SelectInput(InputType):
         return f'<select name="{name}">{options_html}</select>'
 
     def from_form_value(self, form_value):
-        return form_value
-
-
-def get_db():
-    db = getattr(g, "_database", None)
-    if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-        db.row_factory = sqlite3.Row
-    return db
+        return form_value.strip()
 
 
 @app.teardown_appcontext
@@ -160,39 +252,6 @@ class FileInfo:
         ]
 
 
-class CachedNeocitiesClient:
-    _client: neocities.NeoCities
-
-    def __init__(self):
-        self._client = neocities.NeoCities(
-            api_key=API_KEY,
-        )
-
-    @cached_property
-    def items(self):
-        print("LISTITEMS")
-        return self._client.listitems()
-
-    def fetch_reviews_info(self) -> list["ReviewInfo"]:
-        items = self.items["files"]
-        return ReviewInfo.parse_reviews(items)
-
-    def get(self, path):
-        ppath = pathlib.Path(f"cache/{path}")
-        [review] = [r for r in self.fetch_reviews_info() if r.path == path.strip("/")]
-        fetched = False
-        if not ppath.exists() or (
-            datetime.fromtimestamp(ppath.stat().st_mtime).astimezone()
-            < review.updated_at_datetime
-        ):
-            print(f"FETCHING {path}")
-            url = f"{NEOCITIES_DOMAIN}/{path}"
-            text = requests.get(url).text
-            open(f"cache/{path}", "w").write(text)
-            fetched = True
-        return fetched, open(f"cache/{path}").read()
-
-
 def field_options(field):
     if not field["field_options"]:
         return ""
@@ -234,7 +293,7 @@ def new_template():
                     template_id,
                     field_name,
                     field_type,
-                    json.dumps(field_options.split(",")),
+                    json.dumps([option.strip() for option in field_options.split(",")]),
                 )
                 for field_name, field_type, field_options in zip(
                     request.form.getlist("field_name"),
@@ -278,7 +337,12 @@ def update_template(template_id: int):
            values(?, ?, ?, ?)
        """,
         [
-            (template_id, field_name, field_type, json.dumps(field_options.split(",")))
+            (
+                template_id,
+                field_name,
+                field_type,
+                json.dumps([option.strip() for option in field_options.split(",")]),
+            )
             for field_name, field_type, field_options in zip(
                 request.form.getlist("field_name"),
                 request.form.getlist("field_type"),
@@ -288,6 +352,7 @@ def update_template(template_id: int):
         ],
     )
     db.commit()
+    upload_entries(template_id=template_id)
     return redirect("/templates")
 
 
@@ -322,24 +387,6 @@ def template_edit(template_id):
         field_options=field_options,
         input_types=InputType.all(),
     )
-
-
-def get_template_variables(template_entry_id):
-    db = get_db()
-    field_values = db.execute(
-        """
-        SELECT *
-        FROM TemplateFieldValue
-        INNER JOIN TemplateEntry ON TemplateFieldValue.template_entry_id=TemplateEntry.id
-        INNER JOIN TemplateField ON TemplateFieldValue.template_field_id=TemplateField.id
-        WHERE TemplateFieldValue.template_entry_id=?
-    """,
-        str(template_entry_id),
-    ).fetchall()
-    return {
-        field_value["field_name"]: json.loads(field_value["value_json"])
-        for field_value in field_values
-    }
 
 
 def render_entry(template_entry_id):
@@ -413,7 +460,7 @@ def new_template_entry(template_id):
         fields = db.execute(
             "SELECT * FROM TemplateField where template_id=?", str(template_id)
         ).fetchall()
-        field_id_by_name = {field["field_name"]: field["id"] for field in fields}
+        field_id_by_name = {field["field_name"]: field for field in fields}
         template_entry_id = db.execute(
             """
             INSERT INTO TemplateEntry(last_updated, template_id) values (?, ?)
@@ -428,13 +475,14 @@ def new_template_entry(template_id):
             [
                 (
                     template_entry_id,
-                    field_id_by_name[field_name],
-                    json.dumps(field_value),
+                    field_by_name[field_name]["id"],
+                    json.dumps(InputType.from_field_type(field_by_name[field_name]["field_type"]).from_form_value(field_value))
                 )
                 for field_name, field_value in request.form.items()
             ],
         )
         db.commit()
+        upload_entries(template_entry_id=template_entry_id)
         return redirect(f"/templates/{template_id}")
 
 
@@ -453,7 +501,7 @@ def update_template_entry(template_id, template_entry_id):
         ).fetchall()
         template_variables = get_template_variables(template_entry_id)
         fields_html = [
-            field_html(field, template_variables[field["field_name"]])
+            field_html(field, template_variables.get(field["field_name"], None))
             for field in fields
         ]
         return render_template(
@@ -463,7 +511,7 @@ def update_template_entry(template_id, template_entry_id):
         fields = db.execute(
             "SELECT * FROM TemplateField where template_id=?", str(template_id)
         ).fetchall()
-        field_id_by_name = {field["field_name"]: field["id"] for field in fields}
+        field_by_name = {field["field_name"]: field for field in fields}
         db.execute(
             "DELETE FROM TemplateFieldValue where template_entry_id=?",
             str(template_entry_id),
@@ -476,13 +524,14 @@ def update_template_entry(template_id, template_entry_id):
             [
                 (
                     template_entry_id,
-                    field_id_by_name[field_name],
-                    json.dumps(field_value),
+                    field_by_name[field_name]["id"],
+                    json.dumps(InputType.from_field_type(field_by_name[field_name]["field_type"]).from_form_value(field_value))
                 )
                 for field_name, field_value in request.form.items()
             ],
         )
         db.commit()
+        upload_entries(template_entry_id=template_entry_id)
         return redirect(f"/templates/{template_id}")
 
 
@@ -492,7 +541,7 @@ def preview_template(template_id):
     template = db.execute(
         "SELECT * FROM Template where id=?", str(template_id)
     ).fetchone()
-    return render_template_string(template["entry_template"], **request.form)
+    return render_template_string(template["entry_template"], **FUNCTIONS, **request.form)
 
 
 @app.route("/", methods=["GET"])

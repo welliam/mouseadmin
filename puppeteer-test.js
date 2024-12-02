@@ -1,10 +1,20 @@
 #! /usr/bin/env node
 const puppeteer = require('puppeteer');
 const { spawn } = require('child_process');
-
+const path = require('path');
+const fs = require('fs');
 
 // wait 10 minutes
-const wait = () => new Promise(resolve => setTimeout(resolve, 10 * 60 * 1000));
+const wait = () =>
+    new Promise((resolve) => setTimeout(resolve, 10 * 60 * 1000));
+
+async function validateFile(dir, filename, expectedContent) {
+    const filePath = path.join(dir, filename);
+    const fileContent = await fs.promises.readFile(filePath, 'utf8');
+    if (fileContent !== expectedContent) {
+        throw new Error('file content did not match');
+    }
+}
 
 function startShellCommand(command, args = [], envVars = {}) {
     const env = { ...process.env, ...envVars };
@@ -51,7 +61,8 @@ const test = async () => {
         ['run', '--debug', '--host', '0.0.0.0', '--port', '5555'],
         {
             MOUSEADMIN_DB: 'testdb.db',
-            FLASK_APP: 'src/mouseadmin/app.py'
+            FLASK_APP: 'src/mouseadmin/app.py',
+            WERKZEUG_DEBUG_PIN: 'off'
         }
     );
 
@@ -69,7 +80,10 @@ const test = async () => {
 
     // Fill out the initial inputs
     await page.type('input[name="template_name"]', 'Example Template');
-    await page.type('input[name="entry_path_template"]', '/example/path/{{ myfield }}');
+    await page.type(
+        'input[name="entry_path_template"]',
+        '/example/path/{{ myfield }}'
+    );
     await page.type('input[name="neocities_path"]', '/neocities/example');
 
     // Add a new field
@@ -82,9 +96,13 @@ const test = async () => {
 
     // Add a select field
     await page.click('#new-field');
-    const last = elements => elements[elements.length - 1];
-    await last(await page.$$(`${fieldSelector} input[name="field_name"]`)).type("myhtml");
-    await last(await page.$$(`${fieldSelector} select[name="field_type"]`)).select("html");
+    const last = (elements) => elements[elements.length - 1];
+    await last(await page.$$(`${fieldSelector} input[name="field_name"]`)).type(
+        'myhtml'
+    );
+    await last(
+        await page.$$(`${fieldSelector} select[name="field_type"]`)
+    ).select('html');
 
     // Fill out the text areas
     await page.type(
@@ -153,7 +171,7 @@ const test = async () => {
 
     await page.evaluate(() => {
         const link = Array.from(document.querySelectorAll('a')).find(
-            (a) => a.textContent.trim() === "New Template Name"
+            (a) => a.textContent.trim() === 'New Template Name'
         );
         link.click();
     });
@@ -169,56 +187,58 @@ const test = async () => {
 
     await page.waitForNavigation();
 
-    await page.type('input[name="myfield"]', "test");
-    await page.type('textarea[name="myhtml"]', "<b>this is some html</b>");
+    await page.type('input[name="myfield"]', 'test');
+    await page.type('textarea[name="myhtml"]', '<b>this is some html</b>');
 
     /* OBSERVE PREVIEW */
     await page.click('button[id="preview-button"]');
 
-    await (new Promise((resolve) => setTimeout(resolve, 1000)));
-    const previewPage = (await browser.pages())[2]
-    if (!(await previewPage.content()).includes("test")) {
-	throw new Error("Preview page does not contain variable");
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const previewPage = (await browser.pages())[2];
+    if (!(await previewPage.content()).includes('test')) {
+        throw new Error('Preview page does not contain variable');
     }
 
-    if (!(await previewPage.$$("textarea")).name == "myhtml") {
-	throw new Error("Preview page does not contain html input");
+    if (!(await previewPage.$$('textarea')).name == 'myhtml') {
+        throw new Error('Preview page does not contain html input');
     }
     await previewPage.close();
 
     /* SUBMIT */
     await page.click('input[type="submit"]');
     await page.waitForNavigation();
-    if (!(await page.$$("li.entry")).innerText == "/example/path/test") {
-	throw new Error("Page does not include newly created entry");
+    if (!(await page.$$('li.entry')).innerText == '/example/path/test') {
+        throw new Error('Page does not include newly created entry');
     }
+
+    await validateFile('mock_data', '/example/path/test', '');
 
     /*************************
      * UPDATE ENTRY
      *************************/
-    await page.click("li.entry > a");
+    await page.click('li.entry > a');
 
     await page.waitForSelector('input[name="myfield"]');
     await page.evaluate(() => {
         document.querySelector('input[name="myfield"]').value = '';
     });
-    await page.type('input[name="myfield"]', "newvalue");
+    await page.type('input[name="myfield"]', 'newvalue');
     await page.click('input[type="submit"]');
     await page.waitForNavigation();
-    if (!(await page.$$("li.entry")).innerText == "/example/path/newvalue") {
-	throw new Error("Page does not include newly updated entry");
+    if (!(await page.$$('li.entry')).innerText == '/example/path/newvalue') {
+        throw new Error('Page does not include newly updated entry');
     }
 
-    console.log("done! :-)");
+    console.log('done! :-)');
     server.kill();
     await browser.close();
-}
+};
 
 (async () => {
     try {
-	await test();
+        await test();
     } catch (e) {
-	console.error(e);
-	await wait();
+        console.error(e);
+        await wait();
     }
 })();

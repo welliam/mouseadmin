@@ -7,3 +7,5 @@
 /node_modules/
 **/#*#
 **/.#*
+mock_data/*
+!mock_data/.gitkeep
