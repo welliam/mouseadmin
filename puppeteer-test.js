@@ -45,7 +45,7 @@ function startShellCommand(command, args = [], envVars = {}) {
     };
 }
 
-(async () => {
+const test = async () => {
     const server = startShellCommand(
         './env/bin/flask', // Command
         ['run', '--debug', '--host', '0.0.0.0', '--port', '5555'],
@@ -212,4 +212,13 @@ function startShellCommand(command, args = [], envVars = {}) {
     console.log("done! :-)");
     server.kill();
     await browser.close();
+}
+
+(async () => {
+    try {
+	await test();
+    } catch (e) {
+	console.error(e);
+	await wait();
+    }
 })();

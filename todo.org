@@ -1,6 +1,6 @@
 https://neocities.org/api
 
-* TODO implement all input types
+* DONE implement all input types
 - select
 - boolean
 

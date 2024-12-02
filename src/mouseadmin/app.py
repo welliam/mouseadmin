@@ -16,6 +16,7 @@ from typing import Optional
 import pathlib
 import json
 from slugify import slugify
+from abc import ABC, abstractmethod
 
 from mouseadmin import neocities
 
@@ -39,6 +40,73 @@ DATABASE = os.getenv("MOUSEADMIN_DB")
 FUNCTIONS = {
     "slugify": slugify,
 }
+
+
+class InputType(ABC):
+    KEY = NotImplemented
+
+    @abstractmethod
+    def html(self, field, value):
+        pass
+
+    def from_form_value(self, form_value):
+        return form_value
+
+    @classmethod
+    def from_field_type(cls, field_type):
+        for subclass in cls.__subclasses__():
+            if subclass.KEY == field_type:
+                return subclass()
+
+        raise ValueError("Unknown field type", field_type)
+
+    @classmethod
+    def all(cls):
+        return [subclass() for subclass in cls.__subclasses__()]
+
+
+class TextInput(InputType):
+    KEY = "text"
+
+    def html(self, field, value):
+        name = field['field_name']
+        return f'<input type="text" name="{name}" value="{value}" />';
+
+
+class HtmlInput(InputType):
+    KEY = "html"
+
+    def html(self, field, value):
+        name = field['field_name']
+        return f'<textarea type="text" name="{name}">{value}</textarea>'
+
+
+class CheckboxInput(InputType):
+    KEY = "checkbox"
+
+    def html(self, field, value):
+        name = field['field_name']
+        checked = 'checked' if value else ''
+        return f'<input type="checkbox" name="{name}" {checked} />'
+
+    def from_form_value(self, value):
+        return form_value == "on"
+
+
+class SelectInput(InputType):
+    KEY = "select"
+
+    def html(self, field, value):
+        name = field['field_name']
+        options_html = ""
+        for option in json.loads(field["field_options"]):
+            selected = 'selected' if str(option) == str(value) else ''
+            options_html += f'<option value="{option}" {selected}>{option}</option>'
+
+        return f'<select name="{name}">{options_html}</select>'
+
+    def from_form_value(self, form_value):
+        return form_value
 
 
 def get_db():
@@ -163,7 +231,7 @@ def field_options(field):
 @app.route("/templates/new", methods=["GET", "POST"])
 def new_template():
     if request.method == "GET":
-        return render_template("edit_template.html", template=None)
+        return render_template("edit_template.html", template=None, input_types=InputType.all())
     else:
         db = get_db()
         template_name = request.form["template_name"]
@@ -281,6 +349,7 @@ def template_edit(template_id):
         template=template,
         fields=fields,
         field_options=field_options,
+        input_types=InputType.all(),
     )
 
 
@@ -343,22 +412,13 @@ def template(template_id):
 
 
 def field_html(field, value=None):
-    value = value or ""
-    if field["field_type"] == "text":
-        return f"""
-            <li>
-              <label for="{field['field_name']}">{field['field_name']}</label>
-              <input type="text" name="{field['field_name']}" value="{value}" />
-            </li>
-        """
-    if field["field_type"] == "html":
-        return f"""
-            <li>
-              <label for="{field['field_name']}">{field['field_name']}</label>
-              <textarea type="text" name="{field['field_name']}">{value}</textarea>
-            </li>
-        """
-    raise ValueError(f"Invalid field type {field['field_type']}")
+    input_html = InputType.from_field_type(field["field_type"]).html(field, value or "")
+    return f"""
+        <li>
+            <label for="{field['field_name']}">{field['field_name']}</label>
+            {input_html}
+        </li>
+    """
 
 
 @app.route("/templates/<int:template_id>/entry/new", methods=["GET", "POST"])
