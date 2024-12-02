@@ -55,7 +55,7 @@ const test = async () => {
         }
     );
 
-    new Promise((resolve) => setTimeout(resolve, 100));
+    new Promise((resolve) => setTimeout(resolve, 1000));
 
     /*************************
      * CREATE TEMPLATE
@@ -175,7 +175,7 @@ const test = async () => {
     /* OBSERVE PREVIEW */
     await page.click('button[id="preview-button"]');
 
-    await (new Promise((resolve) => setTimeout(resolve, 300)));
+    await (new Promise((resolve) => setTimeout(resolve, 1000)));
     const previewPage = (await browser.pages())[2]
     if (!(await previewPage.content()).includes("test")) {
 	throw new Error("Preview page does not contain variable");
