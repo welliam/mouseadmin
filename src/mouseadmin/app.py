@@ -15,6 +15,7 @@ from bs4 import BeautifulSoup
 from typing import Optional
 import pathlib
 import json
+from slugify import slugify
 
 from mouseadmin import neocities
 
@@ -34,6 +35,10 @@ NON_REVIEW_PAGES = ["home.html", "faq.html"]
 
 
 DATABASE = os.getenv("MOUSEADMIN_DB")
+
+FUNCTIONS = {
+    "slugify": slugify,
+}
 
 
 def get_db():
@@ -197,6 +202,7 @@ def new_template():
                     request.form.getlist("field_type"),
                     request.form.getlist("field_options"),
                 )
+                if field_name.strip()
             ],
         )
         db.commit()
@@ -239,6 +245,7 @@ def update_template(template_id: int):
                 request.form.getlist("field_type"),
                 request.form.getlist("field_options"),
             )
+            if field_name.strip()
         ],
     )
     db.commit()
@@ -305,10 +312,10 @@ def render_entry(template_entry_id):
     ).fetchone()
     template_variables = get_template_variables(template_entry_id)
     entry_path = render_template_string(
-        template["entry_path_template"], **template_variables
+        template["entry_path_template"], **FUNCTIONS, **template_variables
     )
     entry_html = render_template_string(
-        template["entry_template"], **template_variables
+        template["entry_template"], **FUNCTIONS, **template_variables
     )
     return dict(entry_path=entry_path, entry_html=entry_html)
 

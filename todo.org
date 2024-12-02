@@ -1,120 +1,33 @@
 https://neocities.org/api
 
-* TODO make completion, method dropdowns
+* TODO implement all input types
+- select
+- boolean
+
+* TODO neocities implementation
+entry
+- new endpoint: create file
+- update endpoint: create file
+
+template
+- new endpoint: do nothing or generate folder? not sure if the api can even do this
+- update endpoint: update all entries
+
+* TODO POC for fern.neocities.org
+- deploy, show mouse results for game reviews
+
+* TODO thumbnail images
+download, generate thumbnail, upload under its own directory (hardcoded?)
+
+* TODO figure out something for html section templates
+- "add bonus section" etc
+- these could just be their own html inputs
+
+* TODO backfill
+parse html of existing reviews, seed db
+
+* TODO figure out sorting reviews
+by updated timestamp?
 
 * TODO backups
-** TODO when editing pages, back up old version on pi
-- file format: YYYY-MM-DD-HH:MM:SS-YYYY-MM-DD-PATH
-- mouse can let me know if these need to be revived
-
-* TODO deploy the real thing
-** DONE generate API key on dumbiee, set MOUSEADMIN_SITE_API_KEY to it
-** DONE set NEOCITIES_DOMAIN to https://dumbiee.neocities.org
-** DONE set and deploy reviews-new as the path
-** DONE create pages
-- for each review:
-  - create page
-  - check if it matches corresponding reviews page
-** DONE rename directory reviews-new to reviews
-** DONE set and deploy reviews as the path
-
-* TODO sorting ratings
-- clicking rating shows games with that score
-- design for this?
-
-* TODO delete files in app
-clean up home page conveniently
-
-* TODO button to refresh home page template
-can be useful for edits on reviews
-
-* TODO edit interface v2
-** TODO igdb data pulling
-*** TODO developer/year/platform from igdb
-platform we can "guess" based off what's most likely for us to pick (ie switch/ps4/pc over other platforms)
-*** TODO pull image from igdb
-** TODO show preview alongside edit interface
-- pull css from site to show accurately
-- iframe to isolate styles? or maybe just don't care and slam the styles in the page
-** TODO better code editing experience? frontend lib?
-codemirror seems legit and is free/open?
-https://github.com/codemirror/dev/
-https://codepen.io/DerkJanS/pen/EXMwVz
-** TODO draft saving
-
-* DONE parsing
-** DONE set up html parsing
-
-* DONE home page v2
-** DONE edit button
-** DONE visit button
-direct to neocities url
-
-* infra
-** DONE set up website with flask on pi
-** DONE set up services so website resets on pi reset
-** DONE set up script for deploying to pi
-
-* DONE pull in integration lib
-
-* DONE serve list of reviews at /review
-- sorted by time
-
-* DONE serve static file (css)
-
-* DONE formatting fixes
-** DONE padding on top of title
-** DONE fix stars
-** DONE date format
-** DONE fix box on review
-
-* DONE edit interface v1
-** DONE preview button
-** DONE throttle edits
-*** FE approach
-frontend visually "queues" a save, waits until the previous save has finished
-- would have to write js for this
-- this is probably simplest
-- can save the previous save time in localstorage so multiple files are ok
-- lost on closing page though, which isn't nice
-
-*** queue approach
-table:
-| neocities_path | str           |
-| contents       | str           |
-| time           | time          |
-| saved_at       | time nullable |
-
-when writing, check for recent saved_at
-- if max(saved_at) > 1 minute ago:
-  - save immediately, write rows for saved files with saved_at = time
-- if max(saved_at) < 1 minute ago:
-  - write rows with saved_at as null
-  - if task is not kicked off (no null saved_at exists)
-    - kick off a task that:
-      - checks max(saved_at), then sleeps (1 minute - saved_at)
-      - selects all rows with null saved_at and saves them to neocities
-        - if there are dupe neocities_paths, use most recent by time
-
-*** slow write endpoint on BE
-- just sleeps until it's ready
-- still have to keep track of saves
-- fe will need to show loading spinner (should probably do this anyway)
-
-** DONE serve empty edit interface to review at /review/edit/<review-slug>
-- edit interface should have main review and extra content section?
-- extra content can be freeform, gets appended as is to review
-** DONE fill edit interface with parsed html values
-** DONE set up page for creating a new review on /review
-- input and button, creates a new page at /review/<review-slug> but doesn't create it yet
-** DONE set up writing to website: review page
-** DONE fix edit page actions: preview and edit
-** DONE set up writing to website: home page
-- parse dates from list endpoint to get most recent ones
-- fetch most recent articles, parse, show on main page
-*** DONE home page problem: can't get list of all game titles and ratings
-- unslugify name to get name
-  - what about colons? do something about this? try to get python slugify to treat colons well?
-- append random bytes on to page size until its rating is = mod 3
-  - then use page size to get rating amount
-** DONE prevent saving over a review on /reviews/new
+email or something?

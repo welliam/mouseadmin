@@ -131,7 +131,7 @@ function startShellCommand(command, args = [], envVars = {}) {
     await page.waitForNavigation();
 
     // Clear the template name field
-    await page.waitForSelector('input[name="template_name"]'); // Adjust to the actual selector
+    await page.waitForSelector('input[name="template_name"]');
     await page.evaluate(() => {
         document.querySelector('input[name="template_name"]').value = '';
     });
@@ -192,7 +192,22 @@ function startShellCommand(command, args = [], envVars = {}) {
     if (!(await page.$$("li.entry")).innerText == "/example/path/test") {
 	throw new Error("Page does not include newly created entry");
     }
-    await wait();
+
+    /*************************
+     * UPDATE ENTRY
+     *************************/
+    await page.click("li.entry > a");
+
+    await page.waitForSelector('input[name="myfield"]');
+    await page.evaluate(() => {
+        document.querySelector('input[name="myfield"]').value = '';
+    });
+    await page.type('input[name="myfield"]', "newvalue");
+    await page.click('input[type="submit"]');
+    await page.waitForNavigation();
+    if (!(await page.$$("li.entry")).innerText == "/example/path/newvalue") {
+	throw new Error("Page does not include newly updated entry");
+    }
 
     console.log("done! :-)");
     server.kill();
