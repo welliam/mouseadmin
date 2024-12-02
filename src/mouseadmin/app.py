@@ -189,7 +189,7 @@ class HtmlInput(InputType):
 
     def html(self, field, value):
         name = field["field_name"]
-        return f'<textarea type="text" name="{name}">{value}</textarea>'
+        return f'<textarea style="height: 500px; width: 70%" type="text" name="{name}">{value}</textarea>'
 
 
 class CheckboxInput(InputType):
