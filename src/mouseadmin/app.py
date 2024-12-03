@@ -1,3 +1,4 @@
+from itertools import groupby
 import sqlite3
 from functools import cached_property
 import time
@@ -35,9 +36,16 @@ def stars(n):
     return int(n) * "★" + ("" if n.is_integer() else "☆")
 
 
-FUNCTIONS = {
+def by_first_letter(entries, key):
+    sorted_entries = sorted(entries, key=lambda entry: entry[key])
+    return groupby(sorted_entries, lambda entry: next(filter(str.isalnum, entry["title"])))
+
+TEMPLATE_GLOBALS = {
     "slugify": slugify,
     "stars": stars,
+    "NEOCITIES_DOMAIN": NEOCITIES_DOMAIN,
+    "len": len,
+    "by_first_letter": by_first_letter,
 }
 
 
@@ -79,10 +87,23 @@ def get_template_variables(template_entry_id):
     """,
         str(template_entry_id),
     ).fetchall()
-    return {
+
+    template = db.execute(
+        "SELECT * from Template where id=(select template_id from TemplateEntry where id=?)",
+        str(template_entry_id)
+    ).fetchone()
+
+    parameters = {
         field_value["field_name"]: json.loads(field_value["value_json"])
         for field_value in field_values
     }
+    parameters["neocities_path"] = os.path.join(
+        template["neocities_path"],
+        render_template_string(
+            template["entry_path_template"], **TEMPLATE_GLOBALS, **parameters
+        ),
+    )
+    return parameters
 
 
 def upload_entries(*, template_entry_id=None, template_id=None):
@@ -96,7 +117,7 @@ def upload_entries(*, template_entry_id=None, template_id=None):
         else [
             row["id"]
             for row in db.execute(
-                "SELECT id FROM TemplateEntry where template_id=?", str(template_id)
+                "SELECT id FROM TemplateEntry WHERE template_id=? ORDER BY last_updated DESC", str(template_id)
             ).fetchall()
         ]
     )
@@ -118,13 +139,8 @@ def upload_entries(*, template_entry_id=None, template_id=None):
 
     # create entries
     for entry in entries:
-        template_parameters = {**FUNCTIONS, **entry}
-        filepath = os.path.join(
-            template["neocities_path"],
-            render_template_string(
-                template["entry_path_template"], **template_parameters
-            ),
-        )
+        template_parameters = {**TEMPLATE_GLOBALS, **entry}
+        filepath = entry["neocities_path"]
         file_contents = render_template_string(
             template["entry_template"], **template_parameters
         )
@@ -135,7 +151,7 @@ def upload_entries(*, template_entry_id=None, template_id=None):
         "index.html",
     )
     index_html = render_template_string(
-        template["index_template"], entries=entries, **FUNCTIONS
+        template["index_template"], entries=entries, **TEMPLATE_GLOBALS
     )
     files[index_path] = index_html
 
@@ -409,10 +425,10 @@ def render_entry(template_entry_id):
     ).fetchone()
     template_variables = get_template_variables(template_entry_id)
     entry_path = render_template_string(
-        template["entry_path_template"], **FUNCTIONS, **template_variables
+        template["entry_path_template"], **TEMPLATE_GLOBALS, **template_variables
     )
     entry_html = render_template_string(
-        template["entry_template"], **FUNCTIONS, **template_variables
+        template["entry_template"], **TEMPLATE_GLOBALS, **template_variables
     )
     return dict(entry_path=entry_path, entry_html=entry_html)
 
@@ -560,7 +576,7 @@ def preview_template(template_id):
         "SELECT * FROM Template where id=?", str(template_id)
     ).fetchone()
     return render_template_string(
-        template["entry_template"], **FUNCTIONS, **request.form
+        template["entry_template"], **TEMPLATE_GLOBALS, **request.form
     )
 
 
