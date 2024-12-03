@@ -55,18 +55,18 @@ function startShellCommand(command, args = [], envVars = {}) {
     };
 }
 
-const test = async () => {
-    const server = startShellCommand(
-        './env/bin/flask', // Command
-        ['run', '--debug', '--host', '0.0.0.0', '--port', '5555'],
-        {
-            MOUSEADMIN_DB: 'testdb.db',
-            FLASK_APP: 'src/mouseadmin/app.py',
-            WERKZEUG_DEBUG_PIN: 'off'
-        }
-    );
+const server = startShellCommand(
+    './env/bin/flask', // Command
+    ['run', '--debug', '--host', '0.0.0.0', '--port', '5555'],
+    {
+        MOUSEADMIN_DB: 'testdb.db',
+        FLASK_APP: 'src/mouseadmin/app.py',
+        WERKZEUG_DEBUG_PIN: 'off'
+    }
+);
+new Promise((resolve) => setTimeout(resolve, 1000));
 
-    new Promise((resolve) => setTimeout(resolve, 1000));
+const test = async () => {
 
     /*************************
      * CREATE TEMPLATE
@@ -238,6 +238,12 @@ const test = async () => {
     try {
         await test();
     } catch (e) {
+        console.error("STDOUT");
+        console.error(server.getStdoutData());
+        console.error("--------------------------------------------------");
+        console.error("STDERR");
+        console.error(server.getStderrData());
+        console.error("--------------------------------------------------");
         console.error(e);
         await wait();
     }

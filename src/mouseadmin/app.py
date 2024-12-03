@@ -25,7 +25,7 @@ app = Flask(__name__)
 
 NEOCITIES_DOMAIN = os.getenv("NEOCITIES_DOMAIN", "https://fern.neocities.org")
 
-API_KEY = os.getenv("MOUSEADMIN_SITE_API_KEY")
+API_KEY = os.getenv("NEOCITIES_API_KEY")
 
 DATABASE = os.getenv("MOUSEADMIN_DB")
 
@@ -100,7 +100,6 @@ def upload_entries(*, template_entry_id=None, template_id=None):
             ).fetchall()
         ]
     )
-    print(template_entry_ids)
     template_id = (
         template_id
         or db.execute(
@@ -133,9 +132,7 @@ def upload_entries(*, template_entry_id=None, template_id=None):
 
     index_path = os.path.join(
         template["neocities_path"],
-        render_template_string(
-            template["index_template"], entries=entries, **FUNCTIONS
-        ),
+        "index.html",
     )
     index_html = render_template_string(
         template["index_template"], entries=entries, **FUNCTIONS
