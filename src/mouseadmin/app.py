@@ -85,12 +85,12 @@ def get_template_variables(template_entry_id):
         INNER JOIN TemplateField ON TemplateFieldValue.template_field_id=TemplateField.id
         WHERE TemplateFieldValue.template_entry_id=?
     """,
-        str(template_entry_id),
+        (str(template_entry_id),),
     ).fetchall()
 
     template = db.execute(
         "SELECT * from Template where id=(select template_id from TemplateEntry where id=?)",
-        str(template_entry_id)
+        (str(template_entry_id),)
     ).fetchone()
 
     parameters = {
@@ -117,7 +117,7 @@ def upload_entries(*, template_entry_id=None, template_id=None):
         else [
             row["id"]
             for row in db.execute(
-                "SELECT id FROM TemplateEntry WHERE template_id=? ORDER BY last_updated DESC", str(template_id)
+                "SELECT id FROM TemplateEntry WHERE template_id=? ORDER BY timestamp DESC", (str(template_id),)
             ).fetchall()
         ]
     )
@@ -125,12 +125,12 @@ def upload_entries(*, template_entry_id=None, template_id=None):
         template_id
         or db.execute(
             "SELECT template_id FROM TemplateEntry where id=?",
-            str(template_entry_id),
+            (str(template_entry_id),),
         ).fetchone()["template_id"]
     )
 
     template = db.execute(
-        "SELECT * from Template where id=?", str(template_id)
+        "SELECT * from Template where id=?", (str(template_id),)
     ).fetchone()
 
     entries = [get_template_variables(entry_id) for entry_id in template_entry_ids]
@@ -238,13 +238,6 @@ def close_connection(exception):
     db = getattr(g, "_database", None)
     if db is not None:
         db.close()
-
-
-def query_db(query, args=(), one=False):
-    cur = get_db().execute(query, args)
-    rv = cur.fetchall()
-    cur.close()
-    return (rv[0] if rv else None) if one else rv
 
 
 @dataclass
@@ -401,10 +394,10 @@ def templates_list():
 def template_edit(template_id):
     db = get_db()
     template = db.execute(
-        "SELECT * FROM Template where id=?", str(template_id)
+        "SELECT * FROM Template where id=?", (str(template_id),)
     ).fetchone()
     fields = db.execute(
-        "SELECT * FROM TemplateField where template_id=?", str(template_id)
+        "SELECT * FROM TemplateField where template_id=?", (str(template_id),)
     ).fetchall()
     return render_template(
         "edit_template.html",
@@ -418,10 +411,10 @@ def template_edit(template_id):
 def render_entry(template_entry_id):
     db = get_db()
     entry = db.execute(
-        "SELECT * FROM TemplateEntry where id=?", str(template_entry_id)
+        "SELECT * FROM TemplateEntry where id=?", (str(template_entry_id),)
     ).fetchone()
     template = db.execute(
-        "SELECT * FROM Template where id=?", str(entry["template_id"])
+        "SELECT * FROM Template where id=?", (str(entry["template_id"]),)
     ).fetchone()
     template_variables = get_template_variables(template_entry_id)
     entry_path = render_template_string(
@@ -486,7 +479,7 @@ def new_template_entry(template_id):
         fields = db.execute(
             "SELECT * FROM TemplateField where template_id=?", str(template_id)
         ).fetchall()
-        field_id_by_name = {field["field_name"]: field for field in fields}
+        field_by_name = {field["field_name"]: field for field in fields}
         template_entry_id = db.execute(
             """
             INSERT INTO TemplateEntry(last_updated, template_id) values (?, ?)

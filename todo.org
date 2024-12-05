@@ -4,7 +4,7 @@ https://neocities.org/api
 - select
 - boolean
 
-* TODO neocities implementation
+* DONE neocities implementation
 entry
 - new endpoint: create file
 - update endpoint: create file
@@ -13,7 +13,7 @@ template
 - new endpoint: do nothing or generate folder? not sure if the api can even do this
 - update endpoint: update all entries
 
-* TODO POC for fern.neocities.org
+* DONE POC for fern.neocities.org
 - deploy, show mouse results for game reviews
 
 * TODO thumbnail images
@@ -23,10 +23,10 @@ download, generate thumbnail, upload under its own directory (hardcoded?)
 - "add bonus section" etc
 - these could just be their own html inputs
 
-* TODO backfill
+* DONE backfill
 parse html of existing reviews, seed db
 
-* TODO figure out sorting reviews
+* DONE figure out sorting reviews
 by updated timestamp?
 
 * TODO backups
