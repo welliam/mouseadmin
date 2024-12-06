@@ -57,7 +57,7 @@ def month_to_name(n):
         "oct",
         "nov",
         "dec"
-    ][n - 1]
+    ][int(n) - 1]
 
 TEMPLATE_GLOBALS = {
     "slugify": slugify,
