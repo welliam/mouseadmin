@@ -481,7 +481,7 @@ def new_template_entry(template_id):
         fields = db.execute(
             "SELECT * FROM TemplateField where template_id=?", str(template_id)
         ).fetchall()
-        fid_ield_by_name = {field["field_name"]: field for field in fields}
+        field_by_name = {field["field_name"]: field for field in fields}
         template_entry_id = db.execute(
             """
             INSERT INTO TemplateEntry(last_updated, template_id) values (?, ?)
