@@ -527,7 +527,7 @@ def new_template_entry(template_id):
             [
                 (
                     template_entry_id,
-                    field_by_name[field_name]["name"],
+                    field_by_name[field_name]["field_name"],
                     json.dumps(
                         InputType.from_field_type(
                             field_by_name[field_name]["field_type"]
@@ -580,7 +580,7 @@ def update_template_entry(template_id, template_entry_id):
             [
                 (
                     template_entry_id,
-                    field_by_name[field_name]["name"],
+                    field_by_name[field_name]["field_name"],
                     json.dumps(
                         InputType.from_field_type(
                             field_by_name[field_name]["field_type"]
