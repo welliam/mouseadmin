@@ -59,6 +59,7 @@ def month_to_name(n):
         "dec"
     ][int(n) - 1]
 
+
 TEMPLATE_GLOBALS = {
     "slugify": slugify,
     "stars": stars,
@@ -66,6 +67,7 @@ TEMPLATE_GLOBALS = {
     "len": len,
     "by_first_letter": by_first_letter,
     "month_to_name": month_to_name,
+    "sorted": sorted,
 }
 
 
