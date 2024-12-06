@@ -31,6 +31,32 @@ API_KEY = os.getenv("NEOCITIES_API_KEY")
 DATABASE = os.getenv("MOUSEADMIN_DB")
 
 
+month_list = [
+    "jan",
+    "feb",
+    "mar",
+    "apr",
+    "may",
+    "june",
+    "july",
+    "aug",
+    "sep",
+    "oct",
+    "nov",
+    "dec"
+]
+
+
+def json_dumps(x):
+    return json.dumps(x, sort_keys=True, default=str)
+
+
+def json_loads(x):
+    if x:
+        return json.loads(x)
+    return None
+
+
 @app.template_filter("sorted")
 def sorted_desc(args):
     iterable, attr = args
@@ -49,26 +75,33 @@ def by_first_letter(entries, key):
     return groupby(sorted_entries, lambda entry: next(iter(get_title(entry))))
 
 
+def month_of(datestring):
+    return date.fromisoformat(datestring).month
+
+
+def year_of(datestring):
+    return date.fromisoformat(datestring).year
+
+
 def month_to_name(n):
-    return [
-        "jan",
-        "feb",
-        "mar",
-        "apr",
-        "may",
-        "june",
-        "july",
-        "aug",
-        "sep",
-        "oct",
-        "nov",
-        "dec"
-    ][int(n) - 1]
+    return month_list[int(n) - 1]
+
+
+def parse_short_date(s):
+    [year, month_string, day] = s.split(s)
+    return date(year, month_list.index(month_string) + 1, day)
 
 
 def key(t):
     return lambda x: x[t]
 
+
+
+def date_to_string(datestring):
+    if datestring:
+        d = date.fromisoformat(datestring)
+        return f"{d.year} {month_list[d.month - 1]} {d.day}"
+    return ""
 
 
 TEMPLATE_GLOBALS = {
@@ -80,6 +113,9 @@ TEMPLATE_GLOBALS = {
     "month_to_name": month_to_name,
     "sorted": sorted,
     "key": key,
+    "month_of": month_of,
+    "year_of": year_of,
+    "date_to_string": date_to_string,
 }
 
 
@@ -128,7 +164,7 @@ def get_template_variables(template_entry_id):
     ).fetchone()
 
     parameters = {
-        field_value["field_name"]: json.loads(field_value["value_json"])
+        field_value["field_name"]: json_loads(field_value["value_json"])
         for field_value in field_values
     }
     parameters["neocities_path"] = os.path.join(
@@ -255,7 +291,7 @@ class SelectInput(InputType):
     def html(self, field, value):
         name = field["field_name"]
         options_html = ""
-        for option in json.loads(field["field_options"]):
+        for option in json_loads(field["field_options"]):
             selected = "selected" if str(option) == str(value) else ""
             options_html += f'<option value="{option}" {selected}>{option}</option>'
 
@@ -263,6 +299,24 @@ class SelectInput(InputType):
 
     def from_form_value(self, form_value):
         return form_value.strip()
+
+
+class DateInput(InputType):
+    KEY = "date"
+
+    def html(self, field, value):
+        name = field["field_name"]
+        # Set a default value or use the provided one
+        value = value or ""
+        return f'<input type="date" name="{name}" value="{value}">'
+
+    def from_form_value(self, form_value):
+        try:
+            # Parse the form value into a Python date object
+            return datetime.strptime(form_value.strip(), "%Y-%m-%d").date()
+        except ValueError:
+            # Handle invalid date formats gracefully
+            return None
 
 
 @app.teardown_appcontext
@@ -304,7 +358,7 @@ class FileInfo:
 def field_options(field):
     if not field["field_options"]:
         return ""
-    return ", ".join(json.loads(field["field_options"]))
+    return ", ".join(json_loads(field["field_options"]))
 
 
 @app.route("/templates/new", methods=["GET", "POST"])
@@ -344,7 +398,7 @@ def new_template():
                     template_id,
                     field_name,
                     field_type,
-                    json.dumps([option.strip() for option in field_options.split(",")]),
+                    json_dumps([option.strip() for option in field_options.split(",")]),
                 )
                 for field_name, field_type, field_options in zip(
                     request.form.getlist("field_name"),
@@ -392,7 +446,7 @@ def update_template(template_id: int):
                 template_id,
                 field_name,
                 field_type,
-                json.dumps([option.strip() for option in field_options.split(",")]),
+                json_dumps([option.strip() for option in field_options.split(",")]),
             )
             for field_name, field_type, field_options in zip(
                 request.form.getlist("field_name"),
@@ -528,7 +582,7 @@ def new_template_entry(template_id):
                 (
                     template_entry_id,
                     field_by_name[field_name]["field_name"],
-                    json.dumps(
+                    json_dumps(
                         InputType.from_field_type(
                             field_by_name[field_name]["field_type"]
                         ).from_form_value(field_value)
@@ -581,7 +635,7 @@ def update_template_entry(template_id, template_entry_id):
                 (
                     template_entry_id,
                     field_by_name[field_name]["field_name"],
-                    json.dumps(
+                    json_dumps(
                         InputType.from_field_type(
                             field_by_name[field_name]["field_type"]
                         ).from_form_value(field_value)
