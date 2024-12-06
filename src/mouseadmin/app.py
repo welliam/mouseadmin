@@ -31,6 +31,11 @@ API_KEY = os.getenv("NEOCITIES_API_KEY")
 DATABASE = os.getenv("MOUSEADMIN_DB")
 
 
+@app.template_filter("sorted")
+def sorted_desc(iterable, attr):
+    return sorted(iterable, key=lambda x: x[attr], reverse=True)
+
+
 def stars(n):
     n = float(n.strip())
     return int(n) * "★" + ("" if n.is_integer() else "☆")
