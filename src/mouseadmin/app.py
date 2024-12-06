@@ -116,7 +116,7 @@ def get_template_variables(template_entry_id):
         SELECT *
         FROM TemplateFieldValue
         INNER JOIN TemplateEntry ON TemplateFieldValue.template_entry_id=TemplateEntry.id
-        INNER JOIN TemplateField ON TemplateFieldValue.template_field_id=TemplateField.id
+        INNER JOIN TemplateField ON TemplateFieldValue.template_field_name=TemplateField.name
         WHERE TemplateFieldValue.template_entry_id=?
     """,
         (str(template_entry_id),),
@@ -521,13 +521,13 @@ def new_template_entry(template_id):
         ).lastrowid
         db.executemany(
             """
-            insert into TemplateFieldValue(template_entry_id, template_field_id, value_json)
+            insert into TemplateFieldValue(template_entry_id, template_field_name, value_json)
             values(?, ?, ?)
         """,
             [
                 (
                     template_entry_id,
-                    field_by_name[field_name]["id"],
+                    field_by_name[field_name]["name"],
                     json.dumps(
                         InputType.from_field_type(
                             field_by_name[field_name]["field_type"]
@@ -574,13 +574,13 @@ def update_template_entry(template_id, template_entry_id):
         )
         db.executemany(
             """
-            insert into TemplateFieldValue(template_entry_id, template_field_id, value_json)
+            insert into TemplateFieldValue(template_entry_id, template_field_name, value_json)
             values(?, ?, ?)
             """,
             [
                 (
                     template_entry_id,
-                    field_by_name[field_name]["id"],
+                    field_by_name[field_name]["name"],
                     json.dumps(
                         InputType.from_field_type(
                             field_by_name[field_name]["field_type"]

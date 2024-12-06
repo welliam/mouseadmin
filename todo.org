@@ -16,6 +16,17 @@ template
 * DONE POC for fern.neocities.org
 - deploy, show mouse results for game reviews
 
+* DONE backfill
+parse html of existing reviews, seed db
+
+* DONE figure out sorting reviews
+by updated timestamp?
+
+* DONE sorting on art
+
+* DONE numeric month to name
+10 -> oct
+
 * TODO thumbnail images
 download, generate thumbnail, upload under its own directory (hardcoded?)
 
@@ -23,16 +34,5 @@ download, generate thumbnail, upload under its own directory (hardcoded?)
 - "add bonus section" etc
 - these could just be their own html inputs
 
-* DONE backfill
-parse html of existing reviews, seed db
-
-* DONE figure out sorting reviews
-by updated timestamp?
-
 * TODO backups
 email or something?
-
-* TODO sorting on art
-
-* TODO numeric month to name
-10 -> oct
