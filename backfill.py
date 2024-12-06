@@ -16,7 +16,7 @@ def format_date(d):
 
 reviews = json.load(open("./backfill.json"))
 
-for review in sorted(reviews, key=lambda review: review["date"]):
+for review in reversed(sorted(reviews, key=lambda review: review["date"])):
     print(review["title"])
     template_entry_id = db.execute(
         "insert into TemplateEntry(template_id) values ((select id from Template where name='Game reviews'))"

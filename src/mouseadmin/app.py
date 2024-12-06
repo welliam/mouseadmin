@@ -37,8 +37,11 @@ def stars(n):
 
 
 def by_first_letter(entries, key):
-    sorted_entries = sorted(entries, key=lambda entry: entry[key])
-    return groupby(sorted_entries, lambda entry: next(filter(str.isalnum, entry["title"])))
+    def get_title(entry):
+        return ''.join(filter(str.isalnum, entry["title"].upper()))
+    sorted_entries = sorted(entries, key=get_title)
+    return groupby(sorted_entries, lambda entry: next(iter(get_title(entry))))
+
 
 TEMPLATE_GLOBALS = {
     "slugify": slugify,
@@ -111,16 +114,7 @@ def upload_entries(*, template_entry_id=None, template_id=None):
         raise ValueError("Supply one of template_entry_id or template_id")
 
     db = get_db()
-    template_entry_ids = (
-        [template_entry_id]
-        if template_entry_id is not None
-        else [
-            row["id"]
-            for row in db.execute(
-                "SELECT id FROM TemplateEntry WHERE template_id=? ORDER BY timestamp DESC", (str(template_id),)
-            ).fetchall()
-        ]
-    )
+
     template_id = (
         template_id
         or db.execute(
@@ -128,6 +122,13 @@ def upload_entries(*, template_entry_id=None, template_id=None):
             (str(template_entry_id),),
         ).fetchone()["template_id"]
     )
+
+    template_entry_ids = [
+        row["id"]
+        for row in db.execute(
+                "SELECT id FROM TemplateEntry WHERE template_id=? ORDER BY timestamp DESC", (str(template_id),)
+        ).fetchall()
+    ]
 
     template = db.execute(
         "SELECT * from Template where id=?", (str(template_id),)
@@ -138,7 +139,7 @@ def upload_entries(*, template_entry_id=None, template_id=None):
     files = {}
 
     # create entries
-    for entry in entries:
+    for _, entry in filter(lambda entry: str(entry[0]) == str(template_entry_id) if template_entry_id else True, zip(template_entry_ids, entries)):
         template_parameters = {**TEMPLATE_GLOBALS, **entry}
         filepath = entry["neocities_path"]
         file_contents = render_template_string(
@@ -436,10 +437,11 @@ def template(template_id):
         "SELECT * FROM TemplateField where template_id=?", str(template_id)
     ).fetchall()
     template_entries = db.execute(
-        "SELECT * FROM TemplateEntry where template_id=?", str(template_id)
+        "SELECT * FROM TemplateEntry where template_id=? ORDER BY timestamp DESC", str(template_id)
     ).fetchall()
     return render_template(
         "template.html",
+        **TEMPLATE_GLOBALS,
         template=template,
         fields=fields,
         template_entries=[
@@ -479,7 +481,7 @@ def new_template_entry(template_id):
         fields = db.execute(
             "SELECT * FROM TemplateField where template_id=?", str(template_id)
         ).fetchall()
-        field_by_name = {field["field_name"]: field for field in fields}
+        fid_ield_by_name = {field["field_name"]: field for field in fields}
         template_entry_id = db.execute(
             """
             INSERT INTO TemplateEntry(last_updated, template_id) values (?, ?)

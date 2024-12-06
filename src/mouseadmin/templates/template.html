@@ -16,7 +16,12 @@
     <h2>Entries</h2>
     <ul>
       {% for entry in template_entries %}
-        <li class="entry"><a href="/templates/{{ template.id }}/entry/{{ entry.id }}">{{ entry.entry_path }}</a></li>
+      <li class="entry">
+        <a href="/templates/{{ template.id }}/entry/{{ entry.id }}">
+          {{ entry.entry_path }}
+        </a>
+        (<a target="_blank" href="{{NEOCITIES_DOMAIN}}{{ template.neocities_path}}/{{ entry.entry_path }}">neocities &#x2197;</a>)
+      </li>
       {% endfor %}
     </ul>
   </body>
