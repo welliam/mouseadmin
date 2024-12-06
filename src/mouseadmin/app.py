@@ -43,12 +43,29 @@ def by_first_letter(entries, key):
     return groupby(sorted_entries, lambda entry: next(iter(get_title(entry))))
 
 
+def month_to_name(n):
+    return [
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "may",
+        "june",
+        "july",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec"
+    ][n - 1]
+
 TEMPLATE_GLOBALS = {
     "slugify": slugify,
     "stars": stars,
     "NEOCITIES_DOMAIN": NEOCITIES_DOMAIN,
     "len": len,
     "by_first_letter": by_first_letter,
+    "month_to_name": month_to_name,
 }
 
 
