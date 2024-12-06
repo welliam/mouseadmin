@@ -4,4 +4,4 @@
 
 cd /home/well/prog/mouseadmin
 . env/bin/activate
-FLASK_APP=src/mouseadmin/app.py flask run --host 0.0.0.0
+MOUSEADMIN_DB=mouseadmin.db NEOCITIES_CLIENT=neocities FLASK_APP=src/mouseadmin/app.py flask run --host 0.0.0.0
