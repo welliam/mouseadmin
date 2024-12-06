@@ -31,3 +31,8 @@ by updated timestamp?
 
 * TODO backups
 email or something?
+
+* TODO sorting on art
+
+* TODO numeric month to name
+10 -> oct

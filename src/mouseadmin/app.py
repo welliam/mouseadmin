@@ -539,13 +539,13 @@ def update_template_entry(template_id, template_entry_id):
         field_by_name = {field["field_name"]: field for field in fields}
         db.execute(
             "DELETE FROM TemplateFieldValue where template_entry_id=?",
-            str(template_entry_id),
+            (str(template_entry_id),),
         )
         db.executemany(
             """
             insert into TemplateFieldValue(template_entry_id, template_field_id, value_json)
             values(?, ?, ?)
-        """,
+            """,
             [
                 (
                     template_entry_id,
