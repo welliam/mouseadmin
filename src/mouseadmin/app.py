@@ -60,6 +60,11 @@ def month_to_name(n):
     ][int(n) - 1]
 
 
+def key(t):
+    return lambda x: x[t]
+
+
+
 TEMPLATE_GLOBALS = {
     "slugify": slugify,
     "stars": stars,
@@ -68,6 +73,7 @@ TEMPLATE_GLOBALS = {
     "by_first_letter": by_first_letter,
     "month_to_name": month_to_name,
     "sorted": sorted,
+    "key": key,
 }
 
 
