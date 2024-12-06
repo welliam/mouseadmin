@@ -116,7 +116,7 @@ def get_template_variables(template_entry_id):
         SELECT *
         FROM TemplateFieldValue
         INNER JOIN TemplateEntry ON TemplateFieldValue.template_entry_id=TemplateEntry.id
-        INNER JOIN TemplateField ON TemplateFieldValue.template_field_name=TemplateField.name
+        INNER JOIN TemplateField ON TemplateFieldValue.template_field_name=TemplateField.field_name
         WHERE TemplateFieldValue.template_entry_id=?
     """,
         (str(template_entry_id),),
