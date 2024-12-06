@@ -33,7 +33,7 @@ DATABASE = os.getenv("MOUSEADMIN_DB")
 
 @app.template_filter("sorted")
 def sorted_desc(args):
-    args = iterable, attr
+    iterable, attr = args
     return sorted(iterable, key=lambda x: x[attr], reverse=True)
 
 
