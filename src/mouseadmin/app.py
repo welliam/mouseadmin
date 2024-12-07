@@ -1,3 +1,5 @@
+from PIL import Image
+import io
 from itertools import groupby
 import sqlite3
 from functools import cached_property
@@ -110,6 +112,11 @@ def date_to_string(datestring):
     return ""
 
 
+def thumbnail(image_url):
+    _, art_url = image_url.split("/img/")
+    return os.path.join("/img/THUMB", art_url)
+
+
 TEMPLATE_GLOBALS = {
     "slugify": slugify,
     "stars": stars,
@@ -122,6 +129,7 @@ TEMPLATE_GLOBALS = {
     "month_of": month_of,
     "year_of": year_of,
     "date_to_string": date_to_string,
+    "thumbnail": thumbnail,
 }
 
 
@@ -131,20 +139,24 @@ def get_client():
     )[os.getenv("NEOCITIES_CLIENT", "file")]
 
 
-def upload_strings(files: dict[str, str]):
+def upload_strings(files: dict[str, bytes | str]):
     """
-    files is a dict {filename: string_content}
+    files is a dict {filename: content}
     """
 
-    def _temp_file_of(string_content: str):
-        review_file = tempfile.NamedTemporaryFile(mode="w")
-        review_file.write(string_content)
+    def _temp_file_of(content: str | bytes):
+        if type(content) == str:
+            review_file = tempfile.NamedTemporaryFile(mode="w")
+        else:
+            review_file = tempfile.NamedTemporaryFile(mode="wb")
+
+        review_file.write(content)
         review_file.seek(0)
         return review_file
 
     file_objects = {
-        neocities_path: _temp_file_of(string_content)
-        for neocities_path, string_content in files.items()
+        neocities_path: _temp_file_of(content)
+        for neocities_path, content in files.items()
     }
     get_client().upload(
         *((file.name, neocities_path) for neocities_path, file in file_objects.items())
@@ -203,6 +215,12 @@ def upload_entries(*, template_entry_id=None, template_id=None):
         ).fetchall()
     ]
 
+    template_fields = db.execute("SELECT * FROM TemplateField where template_id=?", (str(template_id),))
+    inputs_by_field_name = {
+        template_field["field_name"]: InputType.from_field_type(template_field["field_type"])
+        for template_field in template_fields
+    }
+
     template = db.execute(
         "SELECT * from Template where id=?", (str(template_id),)
     ).fetchone()
@@ -218,6 +236,12 @@ def upload_entries(*, template_entry_id=None, template_id=None):
         file_contents = render_template_string(
             template["entry_template"], **template_parameters
         )
+
+        # create extra files
+        for field_name, field_value in entry.items():
+            if field_name in inputs_by_field_name:
+                files |= inputs_by_field_name[field_name].extra_files(field_value)
+
         files[filepath] = file_contents
 
     index_path = os.path.join(
@@ -262,6 +286,10 @@ class InputType(ABC):
     def all(cls):
         return [subclass() for subclass in cls.__subclasses__()]
 
+    def extra_files(self, value):
+        # extra files to generate from form value on save
+        return {}
+
 
 class TextInput(InputType):
     KEY = "text"
@@ -269,6 +297,29 @@ class TextInput(InputType):
     def html(self, field, value):
         name = field["field_name"]
         return f'<input type="text" name="{name}" value="{value}" />'
+
+
+class ImageURLInput(InputType):
+    KEY = "image_url"
+
+    def html(self, field, value):
+        name = field["field_name"]
+        return f'<input type="text" name="{name}" value="{value}" />'
+
+    def extra_files(self, image_url):
+        thumbnail_max_height_px = 250
+        thumbnail_max_width_px = 250
+
+        result = requests.get(image_url)
+        result.raise_for_status()
+
+        image = Image.open(io.BytesIO(result.content))
+        image.thumbnail((thumbnail_max_height_px, thumbnail_max_width_px))
+        image_bytes_io = io.BytesIO()
+        image.save(image_bytes_io, format='png')
+        image_bytes = image_bytes_io.getvalue()
+
+        return {thumbnail(image_url): image_bytes}
 
 
 class HtmlInput(InputType):
@@ -367,6 +418,7 @@ def field_options(field):
     return ", ".join(json_loads(field["field_options"]))
 
 
+
 @app.route("/templates/new", methods=["GET", "POST"])
 def new_template():
     if request.method == "GET":
@@ -428,7 +480,7 @@ def update_template(template_id: int):
     db = get_db()
     template_name = request.form["template_name"]
 
-    if template_name in [template["name"] for template in db.execute("select name from Template").fetchall()]:
+    if template_name in [template["name"] for template in db.execute("select name from Template where id != ?", (template_id,)).fetchall()]:
         return "Duplicate template name not allowed", 400
 
     neocities_path = request.form["neocities_path"]
@@ -694,7 +746,6 @@ def preview_template(template_id):
     return render_template_string(
         template["entry_template"], **TEMPLATE_GLOBALS, **request.form
     )
-
 
 @app.route("/", methods=["GET"])
 def cms_home():
