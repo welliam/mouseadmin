@@ -27,7 +27,7 @@ by updated timestamp?
 * DONE numeric month to name
 10 -> oct
 
-* TODO thumbnail images
+* DONE thumbnail images
 download, generate thumbnail, upload under its own directory (hardcoded?)
 
 * TODO figure out something for html section templates
