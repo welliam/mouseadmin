@@ -376,6 +376,10 @@ def new_template():
     else:
         db = get_db()
         template_name = request.form["template_name"]
+
+        if template_name in [template["name"] for template in db.execute("select name from Template").fetchall()]:
+            return "Duplicate template name not allowed", 400
+
         neocities_path = request.form["neocities_path"]
         index_template = request.form["index_template"]
         entry_path_template = request.form["entry_path_template"]
@@ -414,6 +418,7 @@ def new_template():
                 if field_name.strip()
             ],
         )
+
         db.commit()
         return redirect("/templates")
 
@@ -422,6 +427,10 @@ def new_template():
 def update_template(template_id: int):
     db = get_db()
     template_name = request.form["template_name"]
+
+    if template_name in [template["name"] for template in db.execute("select name from Template").fetchall()]:
+        return "Duplicate template name not allowed", 400
+
     neocities_path = request.form["neocities_path"]
     index_template = request.form["index_template"]
     entry_path_template = request.form["entry_path_template"]
@@ -518,6 +527,20 @@ def render_entry(template_entry_id):
     return dict(entry_path=entry_path, entry_html=entry_html)
 
 
+def entry_path_exists(*, db, template_id, form, template_entry_id=None):
+    template = db.execute(
+        "SELECT * FROM Template where id=?", (str(template_id),)
+    ).fetchone()
+    path = render_template_string(
+        template["entry_path_template"], **TEMPLATE_GLOBALS, **form
+    )
+    template_entry_ids = map(lambda x: x["id"], db.execute(
+        "select id from TemplateEntry where template_id = ? and id != ?",
+        (str(template_id), str(template_entry_id))
+    ))
+    return path in (render_entry(template_entry_id)["entry_path"] for template_entry_id in template_entry_ids)
+
+
 @app.route("/templates/<int:template_id>", methods=["GET"])
 def template(template_id):
     db = get_db()
@@ -569,6 +592,10 @@ def new_template_entry(template_id):
         template = db.execute(
             "SELECT * FROM Template where id=?", str(template_id)
         ).fetchone()
+
+        if entry_path_exists(db=db, template_id=template_id, form=request.form):
+            return "A template entry with this name already exists", 400
+
         fields = db.execute(
             "SELECT * FROM TemplateField where template_id=?", str(template_id)
         ).fetchall()
@@ -624,6 +651,9 @@ def update_template_entry(template_id, template_entry_id):
             "edit_entry.html", template=template, fields=fields, fields_html=fields_html
         )
     if request.method == "POST":
+        if entry_path_exists(db=db, template_id=template_id, form=request.form, template_entry_id=template_entry_id):
+            return "A template entry with this name already exists", 400
+
         fields = db.execute(
             "SELECT * FROM TemplateField where template_id=?", str(template_id)
         ).fetchall()
