@@ -88,7 +88,9 @@ def year_of(datestring):
 
 
 def month_to_name(n):
-    return month_list[int(n) - 1]
+    if n:
+        return month_list[int(n) - 1]
+    return None
 
 
 def parse_short_date(s):
