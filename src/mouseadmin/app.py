@@ -60,7 +60,7 @@ def json_loads(x):
 @app.template_filter("sorted")
 def sorted_desc(args):
     iterable, attr = args
-    return sorted(iterable, key=lambda x: x[attr], reverse=True)
+    return sorted(iterable, key=lambda x: x[attr] or "", reverse=True)
 
 
 def stars(n):
