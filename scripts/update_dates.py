@@ -3,7 +3,7 @@ import os
 import json
 import sqlite3
 
-db = sqlite3.connect(os.getenv("MOUSEADMIN_DB"))
+db = sqlite3.connect("mouseadmin.db")
 
 month_list = [
     "jan",

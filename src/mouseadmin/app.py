@@ -76,11 +76,15 @@ def by_first_letter(entries, key):
 
 
 def month_of(datestring):
-    return date.fromisoformat(datestring).month
+    if datestring:
+        return date.fromisoformat(datestring).month
+    return None
 
 
 def year_of(datestring):
-    return date.fromisoformat(datestring).year
+    if datestring:
+        return date.fromisoformat(datestring).year
+    return None
 
 
 def month_to_name(n):
