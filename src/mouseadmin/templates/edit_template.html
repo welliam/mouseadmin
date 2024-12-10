@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title>mouseadmin</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script>
       function addField() {
 	  const node = document.getElementById("field").cloneNode(true);
@@ -11,7 +12,9 @@
 	  document.querySelector("#new-field").before(node);
       }
       {% if not template %}
-        window.onload = () => addField();
+      window.onload = () => {
+          addField();
+      }
       {% endif %}
     </script>
   </head>

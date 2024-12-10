@@ -1,11 +1,15 @@
-<html>
+<!doctype html>
+<html lang="en">
   <head>
     <title>mouseadmin</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
     <h1>templates</h1>
-    <a href="/templates/new">new</a>
+    <ul style="padding-bottom: 1em; margin-bottom: 1em; border-bottom: solid thin">
+      <a href="/templates/new">New template</a>
+    </ul>
     <ul>
       {% for template in templates %}
       <li>

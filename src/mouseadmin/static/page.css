@@ -25,6 +25,11 @@ input, textarea, button, select {
   color: #f1e6f7;
 }
 
+input[type="text"], input[type="date"] {
+  width: 75%;
+  max-width: 750px;
+}
+
 ul {
   margin: 0;
   padding: 0 0 0 1em;
@@ -46,4 +51,25 @@ li {
 
 .ml {
     margin-left: 10em;
+}
+
+@media only screen and (max-width: 500px) {
+    .neocities-link {
+        display: block;
+        padding-left: 1em;
+    }
+}
+
+.image-preview {
+    max-height: 250px;
+}
+
+.input-container {
+    display: inline;
+}
+
+.image-preview {
+    display: block;
+    padding: 10px;
+    margin-left: 172px;
 }

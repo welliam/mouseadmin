@@ -1,8 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title>mouseadmin - {{ template.name }} entry</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      window.onload = () => {
+          function imageUrlOnChange(currentTarget, value) {
+              console.log(currentTarget);
+              const preview = currentTarget.querySelector(".image-preview");
+              if (value) {
+                  preview.src = value;
+                  preview.style.display = 'block';
+              } else {
+                  preview.style.display = 'none';
+              }
+          }
+          Array.from(document.querySelectorAll('[data-input-type="image_url"]')).forEach(element => {
+              element.onchange = event => imageUrlOnChange(event.currentTarget, event.target.value);
+              imageUrlOnChange(element, element.querySelector("input").value);
+          });
+      };
+    </script>
   </head>
   <body>
     <header>

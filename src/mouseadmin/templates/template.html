@@ -1,8 +1,9 @@
-<!DOCTYPE html>
+<!DOCTYPE html lang="en">
 <html>
   <head>
     <title>mouseadmin - {{ template.name }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
     <header>
@@ -20,7 +21,7 @@
         <a href="/templates/{{ template.id }}/entry/{{ entry.id }}">
           {{ entry.entry_path }}
         </a>
-        (<a target="_blank" href="{{NEOCITIES_DOMAIN}}{{ template.neocities_path}}/{{ entry.entry_path }}">neocities &#x2197;</a>)
+        <span class="neocities-link">(<a target="_blank" href="{{NEOCITIES_DOMAIN}}{{ template.neocities_path}}/{{ entry.entry_path }}">neocities &#x2197;</a>)</span>
       </li>
       {% endfor %}
     </ul>

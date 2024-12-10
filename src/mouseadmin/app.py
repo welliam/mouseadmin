@@ -291,8 +291,11 @@ class InputType(ABC):
     KEY = NotImplemented
 
     @abstractmethod
-    def html(self, field, value):
+    def input_html(self, field, value):
         pass
+
+    def html(self, field, value):
+        return f'<span data-input-type="{self.KEY}">{self.input_html(field, value)}</span>'
 
     def from_form_value(self, form_value):
         return form_value.strip()
@@ -317,7 +320,7 @@ class InputType(ABC):
 class TextInput(InputType):
     KEY = "text"
 
-    def html(self, field, value):
+    def input_html(self, field, value):
         name = field["field_name"]
         return f'<input type="text" name="{name}" value="{value}" />'
 
@@ -325,9 +328,9 @@ class TextInput(InputType):
 class ImageURLInput(InputType):
     KEY = "image_url"
 
-    def html(self, field, value):
+    def input_html(self, field, value):
         name = field["field_name"]
-        return f'<input type="text" name="{name}" value="{value}" />'
+        return f'<input type="text" name="{name}" value="{value}" /> <img class="image-preview" style="display: none">'
 
     def extra_files(self, image_url):
         thumbnail_max_height_px = 250
@@ -348,7 +351,7 @@ class ImageURLInput(InputType):
 class HtmlInput(InputType):
     KEY = "html"
 
-    def html(self, field, value):
+    def input_html(self, field, value):
         name = field["field_name"]
         return f'<textarea style="height: 500px; width: 70%" type="text" name="{name}">{value}</textarea>'
 
@@ -356,7 +359,7 @@ class HtmlInput(InputType):
 class CheckboxInput(InputType):
     KEY = "checkbox"
 
-    def html(self, field, value):
+    def input_html(self, field, value):
         name = field["field_name"]
         checked = "checked" if value else ""
         return f'<input type="checkbox" name="{name}" {checked} />'
@@ -368,7 +371,7 @@ class CheckboxInput(InputType):
 class SelectInput(InputType):
     KEY = "select"
 
-    def html(self, field, value):
+    def input_html(self, field, value):
         name = field["field_name"]
         options_html = ""
         for option in json_loads(field["field_options"]):
@@ -384,7 +387,7 @@ class SelectInput(InputType):
 class DateInput(InputType):
     KEY = "date"
 
-    def html(self, field, value):
+    def input_html(self, field, value):
         name = field["field_name"]
         # Set a default value or use the provided one
         value = value or ""
