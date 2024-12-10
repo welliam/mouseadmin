@@ -1,3 +1,4 @@
+from urllib.parse import unquote
 import hashlib
 import math
 from PIL import Image
@@ -78,7 +79,7 @@ def get_neocities_file(remote_filename):
         The content of the file.
     """
     client = get_client()
-    pathname = remote_filename.split(NEOCITIES_DOMAIN)[1]
+    pathname = unquote(remote_filename.split(NEOCITIES_DOMAIN)[1])
     local_cache_path = os.path.join("cache", pathname.strip('/'))
     # Fetch file list and its SHA1 hash from server
     files_info = client.listitems()
