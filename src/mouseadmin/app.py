@@ -1,3 +1,4 @@
+import hashlib
 import math
 from PIL import Image
 import io
@@ -58,6 +59,64 @@ month_list = [
     "nov",
     "dec"
 ]
+
+
+def get_neocities_file(remote_filename):
+    """
+    Get a file, checking if it has changed based on its SHA1 hash.
+
+    Parameters
+    ----------
+    remote_filename : str
+        The name of the file on the server.
+    local_cache_path : str
+        The path to the locally cached file.
+
+    Returns
+    -------
+    file_bytes : bytes
+        The content of the file.
+    """
+    client = get_client()
+    pathname = remote_filename.split(NEOCITIES_DOMAIN)[1]
+    local_cache_path = os.path.join("cache", pathname.strip('/'))
+    # Fetch file list and its SHA1 hash from server
+    files_info = client.listitems()
+    file_data = next(
+        (file for file in files_info.get("files", []) if file["path"] == pathname.strip('/')),
+        None
+    )
+
+    if not file_data:
+        raise FileNotFoundError(f"File '{pathname}' not found on server.")
+
+    remote_hash = file_data["sha1_hash"]
+
+    # Check local cache
+    if os.path.exists(local_cache_path):
+        with open(local_cache_path, "rb") as f:
+            local_bytes = f.read()
+            local_hash = hashlib.sha1(local_bytes).hexdigest()
+
+        # If hashes match, return cached version
+        if local_hash == remote_hash:
+            return local_bytes
+
+    # If no match, download the file
+    response = requests.get(remote_filename)
+    if response.status_code != 200:
+        raise Exception(f"Failed to download file: {response.status_code} {response.reason}")
+
+    file_bytes = response.content
+
+    os.makedirs(os.path.dirname(local_cache_path), exist_ok=True)
+
+    # Update cache
+    with open(local_cache_path, "wb") as f:
+        f.write(file_bytes)
+
+    return file_bytes
+
 
 
 def json_dumps(x):
@@ -179,11 +238,12 @@ def upload_strings(files: dict[str, bytes | str]):
     file_list = [(file.name, neocities_path) for neocities_path, file in file_objects.items()]
 
     client = get_client()
-    for chunk in chunkify(list(file_list), CHUNK_SIZE):
+    looped = False
+    for index, chunk in enumerate(chunkify(list(file_list), CHUNK_SIZE)):
         logging.info(f"Uploading chunk of size {len(chunk)}")
-        print(chunk)
         client.upload(*chunk)
-        sleep(3)
+        if index != 0:
+            sleep(3)
 
 
 def get_template_variables(template_entry_id):
@@ -336,10 +396,14 @@ class ImageURLInput(InputType):
         thumbnail_max_height_px = 250
         thumbnail_max_width_px = 250
 
-        result = requests.get(image_url)
-        result.raise_for_status()
+        if image_url.startswith(NEOCITIES_DOMAIN):
+            result = get_neocities_file(image_url)
+        else:
+            result = requests.get(image_url)
+            result.raise_for_status()
+            result = result.content
 
-        image = Image.open(io.BytesIO(result.content))
+        image = Image.open(io.BytesIO(result))
         image.thumbnail((thumbnail_max_height_px, thumbnail_max_width_px))
         image_bytes_io = io.BytesIO()
         image.save(image_bytes_io, format='png')
