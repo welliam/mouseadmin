@@ -70,10 +70,14 @@ li {
 
 .image-preview {
     display: block;
-    padding: 10px;
 }
 @media only screen and (min-width: 500px) {
     .image-preview {
         margin-left: 172px;
+        padding: 10px;
     }
+}
+
+img {
+    max-width: 100%;
 }
