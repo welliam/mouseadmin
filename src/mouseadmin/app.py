@@ -25,6 +25,7 @@ from slugify import slugify
 from abc import ABC, abstractmethod
 from time import sleep
 import logging
+from flask_caching import Cache
 
 
 logging.basicConfig(
@@ -38,6 +39,10 @@ from mouseadmin import neocities, file_client
 
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = "jsdfao987jwer8xo3ru1m3rum89yem89f"
+app.config["CACHE_TYPE"] = "SimpleCache"
+app.config["CACHE_DEFAULT_TIMEOUT"] = 15 # timeout in seconds
+cache = Cache(app)
 
 NEOCITIES_DOMAIN = os.getenv("NEOCITIES_DOMAIN", "https://fern.neocities.org")
 
@@ -62,6 +67,12 @@ month_list = [
 ]
 
 
+@cache.cached(timeout=15)
+def listitems():
+    client = get_client()
+    return client.listitems()
+
+
 def get_neocities_file(remote_filename):
     """
     Get a file, checking if it has changed based on its SHA1 hash.
@@ -82,7 +93,7 @@ def get_neocities_file(remote_filename):
     pathname = unquote(remote_filename.split(NEOCITIES_DOMAIN)[1])
     local_cache_path = os.path.join("cache", pathname.strip('/'))
     # Fetch file list and its SHA1 hash from server
-    files_info = client.listitems()
+    files_info = listitems()
     file_data = next(
         (file for file in files_info.get("files", []) if file["path"] == pathname.strip('/')),
         None
