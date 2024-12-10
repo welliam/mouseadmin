@@ -9,3 +9,4 @@
 **/.#*
 mock_data/*
 !mock_data/.gitkeep
+/src/mouseadmin/log.txt

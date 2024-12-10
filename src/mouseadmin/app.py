@@ -1,3 +1,4 @@
+import math
 from PIL import Image
 import io
 from itertools import groupby
@@ -20,6 +21,16 @@ import pathlib
 import json
 from slugify import slugify
 from abc import ABC, abstractmethod
+from time import sleep
+import logging
+
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+)
+
 
 from mouseadmin import neocities, file_client
 
@@ -139,10 +150,17 @@ def get_client():
     )[os.getenv("NEOCITIES_CLIENT", "file")]
 
 
+def chunkify(files: list, chunk_size: int):
+    for chunk_i in range(math.ceil(len(files) / chunk_size)):
+        yield files[chunk_i * chunk_size : (chunk_i + 1) * chunk_size]
+
+
 def upload_strings(files: dict[str, bytes | str]):
     """
     files is a dict {filename: content}
     """
+
+    CHUNK_SIZE = 25
 
     def _temp_file_of(content: str | bytes):
         if type(content) == str:
@@ -158,9 +176,14 @@ def upload_strings(files: dict[str, bytes | str]):
         neocities_path: _temp_file_of(content)
         for neocities_path, content in files.items()
     }
-    get_client().upload(
-        *((file.name, neocities_path) for neocities_path, file in file_objects.items())
-    )
+    file_list = [(file.name, neocities_path) for neocities_path, file in file_objects.items()]
+
+    client = get_client()
+    for chunk in chunkify(list(file_list), CHUNK_SIZE):
+        logging.info(f"Uploading chunk of size {len(chunk)}")
+        print(chunk)
+        client.upload(*chunk)
+        sleep(3)
 
 
 def get_template_variables(template_entry_id):
@@ -307,6 +330,7 @@ class ImageURLInput(InputType):
         return f'<input type="text" name="{name}" value="{value}" />'
 
     def extra_files(self, image_url):
+        return {}
         thumbnail_max_height_px = 250
         thumbnail_max_width_px = 250
 
