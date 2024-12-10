@@ -330,7 +330,6 @@ class ImageURLInput(InputType):
         return f'<input type="text" name="{name}" value="{value}" />'
 
     def extra_files(self, image_url):
-        return {}
         thumbnail_max_height_px = 250
         thumbnail_max_width_px = 250
 
