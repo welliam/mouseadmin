@@ -14,13 +14,13 @@
 
       window.onload = () => {
           const search = document.getElementById("search")
-          search.onchange = event => {
+          search.onkeypress = event => {
               window.setTimeout(() => {
                   const query = event.target.value;
                   Array.from(document.querySelectorAll('.entry')).forEach(entry => {
                       const dump = Object.values(JSON.parse(entry.dataset['entry']).template_variables).join(' ');
                       const searchMatches = (
-                          !query || query.split().every(queryPart => dump.includes(queryPart))
+                          !query || query.split(' ').every(queryPart => dump.includes(queryPart))
                       );
                       if (searchMatches) {
                           entry.classList.remove('hidden')

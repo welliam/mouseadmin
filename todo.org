@@ -41,7 +41,7 @@ email or something?
 * TODO delete button
 shouldn't do anything on neocities, just delete from db and regenerate index
 
-* TODO search
+* DONE search
 fusejs?
 
 * TODO figure out something for html section templates
