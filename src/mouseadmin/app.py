@@ -436,8 +436,11 @@ class ImageURLInput(InputType):
         if image_url.startswith(NEOCITIES_DOMAIN):
             result = get_neocities_file(image_url)
         else:
-            result = requests.get(image_url)
-            result.raise_for_status()
+            try:
+                result = requests.get(image_url)
+                result.raise_for_status()
+            except requests.exceptions.ConnectionError:
+                return {}
             result = result.content
 
         image = Image.open(io.BytesIO(result))
