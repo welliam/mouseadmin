@@ -289,6 +289,31 @@ def get_template_variables(template_entry_id):
     return parameters
 
 
+def regenerate_index(template_id):
+    db = get_db()
+
+    template = db.execute(
+        "SELECT * from Template where id=?", (str(template_id),)
+    ).fetchone()
+
+    template_entry_ids = [
+        row["id"]
+        for row in db.execute(
+                "SELECT id FROM TemplateEntry WHERE template_id=? ORDER BY timestamp DESC", (str(template_id),)
+        ).fetchall()
+    ]
+    entries = [get_template_variables(entry_id) for entry_id in template_entry_ids]
+    index_path = os.path.join(
+        template["neocities_path"],
+        "index.html",
+    )
+    index_html = render_template_string(
+        template["index_template"], entries=entries, **TEMPLATE_GLOBALS
+    )
+
+    upload_strings({index_path: index_html})
+
+
 def upload_entries(*, template_entry_id=None, template_id=None):
     if template_entry_id is None and template_id is None:
         raise ValueError("Supply one of template_entry_id or template_id")
@@ -837,6 +862,21 @@ def update_template_entry(template_id, template_entry_id):
         db.commit()
         upload_entries(template_entry_id=template_entry_id)
         return redirect(f"/templates/{template_id}")
+
+
+
+@app.route(
+    "/templates/entry/<int:template_entry_id>/delete",
+    methods=["POST"],
+)
+def delete_template_entry(template_entry_id):
+    db = get_db()
+    template_entry = db.execute("select * from TemplateEntry where id=?", [str(template_entry_id)]).fetchone()
+    db.execute("DELETE FROM TemplateFieldValue where template_entry_id=?", [str(template_entry_id)])
+    db.execute("DELETE FROM TemplateEntry where id=?", [str(template_entry_id)])
+    db.commit()
+    regenerate_index(template_entry["template_id"])
+    return "Done", 201
 
 
 @app.route("/templates/<int:template_id>/entry/preview", methods=["POST"])

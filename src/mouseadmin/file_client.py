@@ -97,7 +97,7 @@ class FileClient:
         """
         uploaded = []
         for local_path, server_name in filenames:
-            dest_path = os.path.join(self.base_dir, server_name)
+            dest_path = os.path.join(self.base_dir, server_name.lstrip("/"))
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
             with open(local_path, "rb") as src:
                 with open(dest_path, "wb") as dest:

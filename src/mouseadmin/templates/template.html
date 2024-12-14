@@ -1,9 +1,17 @@
-<!DOCTYPE html lang="en">
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <title>mouseadmin - {{ template.name }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      async function confirmDelete(entryId, entryPath) {
+          if (window.confirm(`Are you sure you want to delete ${entryPath}?`)) {
+              await fetch(`/templates/entry/${entryId}/delete`, {method: "POST"})
+              window.location.reload()
+          }
+      }
+    </script>
   </head>
   <body>
     <header>
@@ -18,10 +26,15 @@
     <ul>
       {% for entry in template_entries %}
       <li class="entry">
-        <a href="/templates/{{ template.id }}/entry/{{ entry.id }}">
-          {{ entry.entry_path }}
-        </a>
-        <span class="neocities-link">(<a target="_blank" href="{{NEOCITIES_DOMAIN}}{{ template.neocities_path}}/{{ entry.entry_path }}">neocities &#x2197;</a>)</span>
+        <span>
+          <a href="/templates/{{ template.id }}/entry/{{ entry.id }}">
+            {{ entry.entry_path }}
+          </a>
+        </span>
+        <span>
+          <span class="neocities-link"><a target="_blank" href="{{NEOCITIES_DOMAIN}}{{ template.neocities_path}}/{{ entry.entry_path }}">Neocities &#x2197;</a></span>
+          <a href="javascript:void(0)" onclick="confirmDelete({{ entry.id }}, '{{ entry.entry_path }}')">Delete</a>
+        </span>
       </li>
       {% endfor %}
     </ul>

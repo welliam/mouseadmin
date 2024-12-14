@@ -81,3 +81,10 @@ li {
 img {
     max-width: 100%;
 }
+
+.entry {
+    display: flex;
+    flex-direction: row;
+    width: 500px;
+    justify-content: space-between;
+}

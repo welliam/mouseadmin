@@ -30,9 +30,20 @@ by updated timestamp?
 * DONE thumbnail images
 download, generate thumbnail, upload under its own directory (hardcoded?)
 
+* DONE backups
+email or something?
+
+* TODO improve tag ux on index
+- hide tags that don't apply to current selection
+  - or underline etc
+- group character tags by first letter
+
+* TODO delete button
+shouldn't do anything on neocities, just delete from db and regenerate index
+
+* TODO search
+fusejs?
+
 * TODO figure out something for html section templates
 - "add bonus section" etc
 - these could just be their own html inputs
-
-* TODO backups
-email or something?
