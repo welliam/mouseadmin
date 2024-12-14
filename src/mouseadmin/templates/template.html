@@ -11,6 +11,28 @@
               window.location.reload()
           }
       }
+
+      window.onload = () => {
+          const search = document.getElementById("search")
+          search.onchange = event => {
+              window.setTimeout(() => {
+                  const query = event.target.value;
+                  Array.from(document.querySelectorAll('.entry')).forEach(entry => {
+                      const dump = Object.values(JSON.parse(entry.dataset['entry']).template_variables).join(' ');
+                      const searchMatches = (
+                          !query || query.split().every(queryPart => dump.includes(queryPart))
+                      );
+                      if (searchMatches) {
+                          entry.classList.remove('hidden')
+                      } else {
+                          console.log('hide?')
+                          entry.classList.add('hidden')
+                      }
+
+                  });
+              }, 0);
+          };
+      }
     </script>
   </head>
   <body>
@@ -23,19 +45,22 @@
       <li><a href="/templates/{{ template.id }}/entry/new">New entry</a></li>
     </ul>
     <h2>Entries</h2>
+    <p>
+    <input placeholder="Search" id="search">
+    </p>
     <ul>
       {% for entry in template_entries %}
-      <li class="entry">
-        <span>
-          <a href="/templates/{{ template.id }}/entry/{{ entry.id }}">
-            {{ entry.entry_path }}
-          </a>
-        </span>
-        <span>
-          <span class="neocities-link"><a target="_blank" href="{{NEOCITIES_DOMAIN}}{{ template.neocities_path}}/{{ entry.entry_path }}">Neocities &#x2197;</a></span>
-          <a href="javascript:void(0)" onclick="confirmDelete({{ entry.id }}, '{{ entry.entry_path }}')">Delete</a>
-        </span>
-      </li>
+          <li class="entry" data-entry="{{ json.dumps(entry) }}">
+            <span>
+              <a href="/templates/{{ template.id }}/entry/{{ entry.id }}">
+                {{ entry.entry_path }}
+              </a>
+            </span>
+            <span>
+              <span class="neocities-link"><a target="_blank" href="{{NEOCITIES_DOMAIN}}{{ template.neocities_path}}/{{ entry.entry_path }}">Neocities &#x2197;</a></span>
+              <a href="javascript:void(0)" onclick="confirmDelete({{ entry.id }}, '{{ entry.entry_path }}')">Delete</a>
+            </span>
+          </li>
       {% endfor %}
     </ul>
   </body>

@@ -212,6 +212,7 @@ TEMPLATE_GLOBALS = {
     "year_of": year_of,
     "date_to_string": date_to_string,
     "thumbnail": thumbnail,
+    "json": json,
 }
 
 
@@ -706,7 +707,7 @@ def render_entry(template_entry_id):
     entry_html = render_template_string(
         template["entry_template"], **TEMPLATE_GLOBALS, **template_variables
     )
-    return dict(entry_path=entry_path, entry_html=entry_html)
+    return dict(entry_path=entry_path, entry_html=entry_html, template_variables=template_variables)
 
 
 def entry_path_exists(*, db, template_id, form, template_entry_id=None):
