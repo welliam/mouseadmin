@@ -186,7 +186,6 @@ def key(t):
     return lambda x: x[t]
 
 
-
 def date_to_string(datestring):
     if datestring:
         d = date.fromisoformat(datestring)

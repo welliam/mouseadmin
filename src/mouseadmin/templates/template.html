@@ -14,7 +14,7 @@
 
       window.onload = () => {
           const search = document.getElementById("search")
-          search.onkeypress = event => {
+          const listener = event => {
               window.setTimeout(() => {
                   const query = event.target.value;
                   Array.from(document.querySelectorAll('.entry')).forEach(entry => {
@@ -32,6 +32,9 @@
                   });
               }, 0);
           };
+          search.onkeydown = listener;
+          search.onkeypress = listener;
+          search.onchange = listener;
       }
     </script>
   </head>
