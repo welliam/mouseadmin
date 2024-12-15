@@ -30,8 +30,8 @@ from flask_caching import Cache
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 
@@ -41,7 +41,7 @@ from mouseadmin import neocities, file_client
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "jsdfao987jwer8xo3ru1m3rum89yem89f"
 app.config["CACHE_TYPE"] = "SimpleCache"
-app.config["CACHE_DEFAULT_TIMEOUT"] = 15 # timeout in seconds
+app.config["CACHE_DEFAULT_TIMEOUT"] = 15  # timeout in seconds
 cache = Cache(app)
 
 NEOCITIES_DOMAIN = os.getenv("NEOCITIES_DOMAIN", "https://fern.neocities.org")
@@ -63,7 +63,7 @@ month_list = [
     "sep",
     "oct",
     "nov",
-    "dec"
+    "dec",
 ]
 
 
@@ -91,12 +91,16 @@ def get_neocities_file(remote_filename):
     """
     client = get_client()
     pathname = unquote(remote_filename.split(NEOCITIES_DOMAIN)[1])
-    local_cache_path = os.path.join("cache", pathname.strip('/'))
+    local_cache_path = os.path.join("cache", pathname.strip("/"))
     # Fetch file list and its SHA1 hash from server
     files_info = listitems()
     file_data = next(
-        (file for file in files_info.get("files", []) if file["path"] == pathname.strip('/')),
-        None
+        (
+            file
+            for file in files_info.get("files", [])
+            if file["path"] == pathname.strip("/")
+        ),
+        None,
     )
 
     if not file_data:
@@ -117,7 +121,9 @@ def get_neocities_file(remote_filename):
     # If no match, download the file
     response = requests.get(remote_filename)
     if response.status_code != 200:
-        raise Exception(f"Failed to download file: {response.status_code} {response.reason}")
+        raise Exception(
+            f"Failed to download file: {response.status_code} {response.reason}"
+        )
 
     file_bytes = response.content
 
@@ -128,7 +134,6 @@ def get_neocities_file(remote_filename):
         f.write(file_bytes)
 
     return file_bytes
-
 
 
 def json_dumps(x):
@@ -154,7 +159,8 @@ def stars(n):
 
 def by_first_letter(entries, key):
     def get_title(entry):
-        return ''.join(filter(str.isalnum, entry["title"].upper()))
+        return "".join(filter(str.isalnum, entry["title"].upper()))
+
     sorted_entries = sorted(entries, key=get_title)
     return groupby(sorted_entries, lambda entry: next(iter(get_title(entry))))
 
@@ -175,11 +181,6 @@ def month_to_name(n):
     if n:
         return month_list[int(n) - 1]
     return None
-
-
-def parse_short_date(s):
-    [year, month_string, day] = s.split(s)
-    return date(year, month_list.index(month_string) + 1, day)
 
 
 def key(t):
@@ -247,7 +248,9 @@ def upload_strings(files: dict[str, bytes | str]):
         neocities_path: _temp_file_of(content)
         for neocities_path, content in files.items()
     }
-    file_list = [(file.name, neocities_path) for neocities_path, file in file_objects.items()]
+    file_list = [
+        (file.name, neocities_path) for neocities_path, file in file_objects.items()
+    ]
 
     client = get_client()
     looped = False
@@ -273,7 +276,7 @@ def get_template_variables(template_entry_id):
 
     template = db.execute(
         "SELECT * from Template where id=(select template_id from TemplateEntry where id=?)",
-        (str(template_entry_id),)
+        (str(template_entry_id),),
     ).fetchone()
 
     parameters = {
@@ -299,7 +302,8 @@ def regenerate_index(template_id):
     template_entry_ids = [
         row["id"]
         for row in db.execute(
-                "SELECT id FROM TemplateEntry WHERE template_id=? ORDER BY timestamp DESC", (str(template_id),)
+            "SELECT id FROM TemplateEntry WHERE template_id=? ORDER BY timestamp DESC",
+            (str(template_id),),
         ).fetchall()
     ]
     entries = [get_template_variables(entry_id) for entry_id in template_entry_ids]
@@ -331,13 +335,18 @@ def upload_entries(*, template_entry_id=None, template_id=None):
     template_entry_ids = [
         row["id"]
         for row in db.execute(
-                "SELECT id FROM TemplateEntry WHERE template_id=? ORDER BY timestamp DESC", (str(template_id),)
+            "SELECT id FROM TemplateEntry WHERE template_id=? ORDER BY timestamp DESC",
+            (str(template_id),),
         ).fetchall()
     ]
 
-    template_fields = db.execute("SELECT * FROM TemplateField where template_id=?", (str(template_id),))
+    template_fields = db.execute(
+        "SELECT * FROM TemplateField where template_id=?", (str(template_id),)
+    )
     inputs_by_field_name = {
-        template_field["field_name"]: InputType.from_field_type(template_field["field_type"])
+        template_field["field_name"]: InputType.from_field_type(
+            template_field["field_type"]
+        )
         for template_field in template_fields
     }
 
@@ -350,7 +359,12 @@ def upload_entries(*, template_entry_id=None, template_id=None):
     files = {}
 
     # create entries
-    for _, entry in filter(lambda entry: str(entry[0]) == str(template_entry_id) if template_entry_id else True, zip(template_entry_ids, entries)):
+    for _, entry in filter(
+        lambda entry: (
+            str(entry[0]) == str(template_entry_id) if template_entry_id else True
+        ),
+        zip(template_entry_ids, entries),
+    ):
         template_parameters = {**TEMPLATE_GLOBALS, **entry}
         filepath = entry["neocities_path"]
         file_contents = render_template_string(
@@ -392,7 +406,9 @@ class InputType(ABC):
         pass
 
     def html(self, field, value):
-        return f'<span data-input-type="{self.KEY}">{self.input_html(field, value)}</span>'
+        return (
+            f'<span data-input-type="{self.KEY}">{self.input_html(field, value)}</span>'
+        )
 
     def from_form_value(self, form_value):
         return form_value.strip()
@@ -433,20 +449,20 @@ class ImageURLInput(InputType):
         thumbnail_max_height_px = 250
         thumbnail_max_width_px = 250
 
-        if image_url.startswith(NEOCITIES_DOMAIN):
-            result = get_neocities_file(image_url)
-        else:
-            try:
-                result = requests.get(image_url)
-                result.raise_for_status()
-            except requests.exceptions.ConnectionError:
-                return {}
-            result = result.content
+        try:
+            if image_url.startswith(NEOCITIES_DOMAIN):
+                result = get_neocities_file(image_url)
+            else:
+                http_result = requests.get(image_url)
+                http_result.raise_for_status()
+                result = http_result.content
+        except requests.exceptions.ConnectionError:
+            return {}
 
-        image = Image.open(io.BytesIO(result))
+        image = Image.open(io.BytesIO(result.content))
         image.thumbnail((thumbnail_max_height_px, thumbnail_max_width_px))
         image_bytes_io = io.BytesIO()
-        image.save(image_bytes_io, format='png')
+        image.save(image_bytes_io, format="png")
         image_bytes = image_bytes_io.getvalue()
 
         return {thumbnail(image_url): image_bytes}
@@ -548,7 +564,6 @@ def field_options(field):
     return ", ".join(json_loads(field["field_options"]))
 
 
-
 @app.route("/templates/new", methods=["GET", "POST"])
 def new_template():
     if request.method == "GET":
@@ -559,7 +574,10 @@ def new_template():
         db = get_db()
         template_name = request.form["template_name"]
 
-        if template_name in [template["name"] for template in db.execute("select name from Template").fetchall()]:
+        if template_name in [
+            template["name"]
+            for template in db.execute("select name from Template").fetchall()
+        ]:
             return "Duplicate template name not allowed", 400
 
         neocities_path = request.form["neocities_path"]
@@ -610,7 +628,12 @@ def update_template(template_id: int):
     db = get_db()
     template_name = request.form["template_name"]
 
-    if template_name in [template["name"] for template in db.execute("select name from Template where id != ?", (template_id,)).fetchall()]:
+    if template_name in [
+        template["name"]
+        for template in db.execute(
+            "select name from Template where id != ?", (template_id,)
+        ).fetchall()
+    ]:
         return "Duplicate template name not allowed", 400
 
     neocities_path = request.form["neocities_path"]
@@ -706,7 +729,11 @@ def render_entry(template_entry_id):
     entry_html = render_template_string(
         template["entry_template"], **TEMPLATE_GLOBALS, **template_variables
     )
-    return dict(entry_path=entry_path, entry_html=entry_html, template_variables=template_variables)
+    return dict(
+        entry_path=entry_path,
+        entry_html=entry_html,
+        template_variables=template_variables,
+    )
 
 
 def entry_path_exists(*, db, template_id, form, template_entry_id=None):
@@ -716,11 +743,17 @@ def entry_path_exists(*, db, template_id, form, template_entry_id=None):
     path = render_template_string(
         template["entry_path_template"], **TEMPLATE_GLOBALS, **form
     )
-    template_entry_ids = map(lambda x: x["id"], db.execute(
-        "select id from TemplateEntry where template_id = ? and id != ?",
-        (str(template_id), str(template_entry_id))
-    ))
-    return path in (render_entry(template_entry_id)["entry_path"] for template_entry_id in template_entry_ids)
+    template_entry_ids = map(
+        lambda x: x["id"],
+        db.execute(
+            "select id from TemplateEntry where template_id = ? and id != ?",
+            (str(template_id), str(template_entry_id)),
+        ),
+    )
+    return path in (
+        render_entry(template_entry_id)["entry_path"]
+        for template_entry_id in template_entry_ids
+    )
 
 
 @app.route("/templates/<int:template_id>", methods=["GET"])
@@ -733,7 +766,8 @@ def template(template_id):
         "SELECT * FROM TemplateField where template_id=?", str(template_id)
     ).fetchall()
     template_entries = db.execute(
-        "SELECT * FROM TemplateEntry where template_id=? ORDER BY timestamp DESC", str(template_id)
+        "SELECT * FROM TemplateEntry where template_id=? ORDER BY timestamp DESC",
+        str(template_id),
     ).fetchall()
     return render_template(
         "template.html",
@@ -833,7 +867,12 @@ def update_template_entry(template_id, template_entry_id):
             "edit_entry.html", template=template, fields=fields, fields_html=fields_html
         )
     if request.method == "POST":
-        if entry_path_exists(db=db, template_id=template_id, form=request.form, template_entry_id=template_entry_id):
+        if entry_path_exists(
+            db=db,
+            template_id=template_id,
+            form=request.form,
+            template_entry_id=template_entry_id,
+        ):
             return "A template entry with this name already exists", 400
 
         fields = db.execute(
@@ -867,15 +906,19 @@ def update_template_entry(template_id, template_entry_id):
         return redirect(f"/templates/{template_id}")
 
 
-
 @app.route(
     "/templates/entry/<int:template_entry_id>/delete",
     methods=["POST"],
 )
 def delete_template_entry(template_entry_id):
     db = get_db()
-    template_entry = db.execute("select * from TemplateEntry where id=?", [str(template_entry_id)]).fetchone()
-    db.execute("DELETE FROM TemplateFieldValue where template_entry_id=?", [str(template_entry_id)])
+    template_entry = db.execute(
+        "select * from TemplateEntry where id=?", [str(template_entry_id)]
+    ).fetchone()
+    db.execute(
+        "DELETE FROM TemplateFieldValue where template_entry_id=?",
+        [str(template_entry_id)],
+    )
     db.execute("DELETE FROM TemplateEntry where id=?", [str(template_entry_id)])
     db.commit()
     regenerate_index(template_entry["template_id"])
@@ -891,6 +934,7 @@ def preview_template(template_id):
     return render_template_string(
         template["entry_template"], **TEMPLATE_GLOBALS, **request.form
     )
+
 
 @app.route("/", methods=["GET"])
 def cms_home():
