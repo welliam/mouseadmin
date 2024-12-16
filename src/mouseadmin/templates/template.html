@@ -23,9 +23,7 @@
               element: element,
           }));
           const keys = Object.keys(terms[0]).filter(x => x !== "element");
-          const fuse = new Fuse(terms, { keys, threshold: 0.9 });
-          console.log(terms);
-          console.log(keys);
+          const fuse = new Fuse(terms, { keys, threshold: 0.3 });
 
           const listener = event => {
               window.setTimeout(() => {
