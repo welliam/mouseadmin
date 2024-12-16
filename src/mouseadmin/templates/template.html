@@ -4,6 +4,7 @@
     <title>mouseadmin - {{ template.name }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='page.css') }}" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.4.6/fuse.min.js"></script>
     <script>
       async function confirmDelete(entryId, entryPath) {
           if (window.confirm(`Are you sure you want to delete ${entryPath}?`)) {
@@ -12,24 +13,32 @@
           }
       }
 
+
       window.onload = () => {
+          const elements = Array.from(document.querySelectorAll('.entry'));
+          const container = document.getElementById("entry-list");
           const search = document.getElementById("search")
+          const terms = elements.map(element => ({
+              ...JSON.parse(element.dataset['entry']).template_variables,
+              element: element,
+          }));
+          const keys = Object.keys(terms[0]).filter(x => x !== "element");
+          const fuse = new Fuse(terms, { keys, threshold: 0.8 });
+          console.log(terms);
+          console.log(keys);
+
           const listener = event => {
               window.setTimeout(() => {
                   const query = event.target.value;
-                  Array.from(document.querySelectorAll('.entry')).forEach(entry => {
-                      const dump = Object.values(JSON.parse(entry.dataset['entry']).template_variables).join(' ');
-                      const searchMatches = (
-                          !query || query.split(' ').every(queryPart => dump.includes(queryPart))
-                      );
-                      if (searchMatches) {
-                          entry.classList.remove('hidden')
-                      } else {
-                          console.log('hide?')
-                          entry.classList.add('hidden')
-                      }
-                  });
-              }, 0);
+                  if (!query) {
+                      container.innerHTML = "";
+                      elements.forEach(element => container.appendChild(element));
+                  } else {
+                      const result = fuse.search(query);
+                      container.innerHTML = "";
+                      result.forEach(({ element }) => container.appendChild(element));
+                  }
+              }, 20);
           };
           search.onkeydown = listener;
           search.onchange = listener;
@@ -49,7 +58,7 @@
     <p>
     <input placeholder="Search" id="search">
     </p>
-    <ul>
+    <ul id="entry-list">
       {% for entry in template_entries %}
           <li class="entry" data-entry="{{ json.dumps(entry) }}">
             <span>
