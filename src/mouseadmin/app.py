@@ -459,7 +459,7 @@ class ImageURLInput(InputType):
         except requests.exceptions.ConnectionError:
             return {}
 
-        image = Image.open(io.BytesIO(result.content))
+        image = Image.open(io.BytesIO(result))
         image.thumbnail((thumbnail_max_height_px, thumbnail_max_width_px))
         image_bytes_io = io.BytesIO()
         image.save(image_bytes_io, format="png")
