@@ -714,7 +714,7 @@ def template_edit(template_id):
     )
 
 
-def render_entry(template_entry_id):
+def render_entry_path(template_entry_id):
     db = get_db()
     entry = db.execute(
         "SELECT * FROM TemplateEntry where id=?", (str(template_entry_id),)
@@ -726,13 +726,23 @@ def render_entry(template_entry_id):
     entry_path = render_template_string(
         template["entry_path_template"], **TEMPLATE_GLOBALS, **template_variables
     )
+    return dict(
+        entry_template=template["entry_template"],
+        entry_path=entry_path,
+        template_variables=template_variables,
+    )
+
+
+def render_entry(template_entry_id):
+    rendered = render_entry_path(template_entry_id)
+    entry_template = rendered["entry_template"]
+    template_variables = rendered["template_variables"]
     entry_html = render_template_string(
-        template["entry_template"], **TEMPLATE_GLOBALS, **template_variables
+        entry_template, **TEMPLATE_GLOBALS, **template_variables
     )
     return dict(
-        entry_path=entry_path,
+        rendered,
         entry_html=entry_html,
-        template_variables=template_variables,
     )
 
 
@@ -775,7 +785,7 @@ def template(template_id):
         template=template,
         fields=fields,
         template_entries=[
-            dict(entry, **render_entry(entry["id"])) for entry in template_entries
+            dict(entry, **render_entry_path(entry["id"])) for entry in template_entries
         ],
     )
 
